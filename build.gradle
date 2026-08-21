@@ -55,6 +55,12 @@ dependencies {
     // actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    // bucket4j
+    implementation 'com.bucket4j:bucket4j_jdk17-core:8.19.0'
+    implementation 'com.bucket4j:bucket4j_jdk17-redis-common:8.19.0'
+    implementation 'com.bucket4j:bucket4j_jdk17-lettuce:8.19.0'
+    // redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

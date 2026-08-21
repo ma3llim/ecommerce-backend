@@ -7,6 +7,10 @@ spring:
     username: ${PG_USER}
     password: ${PG_PASSWORD}
 
+  data:
+    redis:
+      url: ${UPSTASH_REDIS_URL}
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -87,3 +91,14 @@ management:
     web:
       exposure:
         include: health,info,prometheus
+
+rate-limit:
+  default-limit:
+    capacity: 30
+    refill-tokens: 30
+    refill-duration: 1m
+
+  auth:
+    capacity: 5
+    refill-tokens: 5
+    refill-duration: 1m
