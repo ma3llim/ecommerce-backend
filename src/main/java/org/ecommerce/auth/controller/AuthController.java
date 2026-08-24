@@ -59,7 +59,7 @@ public class AuthController {
         cookieUtils.setAuthCookies(response, userAndTokens.accessToken(), userAndTokens.refreshToken());
 
         UserAndAccessToken userAndAccessToken = UserAndAccessToken.builder().accessToken(userAndTokens.accessToken())
-                .userResponseDto(userAndTokens.userResponseDto()).build();
+                .user(userAndTokens.userResponseDto()).build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiSuccessResponse.<UserAndAccessToken>builder()
                 .success(true)
@@ -88,8 +88,13 @@ public class AuthController {
     public ResponseEntity<ApiSuccessResponse<UserAndAccessToken>> login(@Valid @RequestBody LoginRequestDto loginData, HttpServletResponse response, HttpServletRequest request) {
         UserAndTokenResponseDto userAndToken = authService.login(loginData);
 
-        UserAndAccessToken userAndAccessToken = UserAndAccessToken.builder().accessToken(userAndToken.accessToken())
-                .userResponseDto(userAndToken.userResponseDto()).build();
+        cookieUtils.setAuthCookies(response, userAndToken.accessToken(), userAndToken.refreshToken());
+
+        UserAndAccessToken userAndAccessToken = UserAndAccessToken.builder()
+                .accessToken(userAndToken.accessToken())
+                .user(userAndToken.userResponseDto())
+                .build();
+
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiSuccessResponse.<UserAndAccessToken>builder()
                 .success(true)
@@ -110,7 +115,7 @@ public class AuthController {
         cookieUtils.setAuthCookies(response, userAndTokenResponseDto.accessToken(), userAndTokenResponseDto.refreshToken());
 
         UserAndAccessToken userAndAccessToken = UserAndAccessToken.builder().accessToken(userAndTokenResponseDto.accessToken())
-                .userResponseDto(userAndTokenResponseDto.userResponseDto()).build();
+                .user(userAndTokenResponseDto.userResponseDto()).build();
 
         return ResponseEntity.ok(ApiSuccessResponse.<UserAndAccessToken>builder()
                 .success(true)
