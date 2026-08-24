@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ecommerce.auth.Dtos.request.*;
+import org.ecommerce.auth.Dtos.response.UserAndAccessToken;
 import org.ecommerce.auth.Dtos.response.UserAndTokenResponseDto;
 import org.ecommerce.auth.Dtos.response.UserResponseDto;
 import org.ecommerce.auth.service.AuthService;
@@ -53,14 +54,18 @@ public class AuthController {
             description = "Verifies the user's email using the OTP and establishes authentication cookies"
     )
     @PostMapping("/verify-email")
-    public ResponseEntity<ApiSuccessResponse<UserResponseDto>> verifyEmail(@Valid @RequestBody VerifyEmailRequestDto verifyEmailRequest, HttpServletResponse response, HttpServletRequest request) {
+    public ResponseEntity<ApiSuccessResponse<UserAndAccessToken>> verifyEmail(@Valid @RequestBody VerifyEmailRequestDto verifyEmailRequest, HttpServletResponse response, HttpServletRequest request) {
         UserAndTokenResponseDto userAndTokens = authService.verifyEmail(verifyEmailRequest);
         cookieUtils.setAuthCookies(response, userAndTokens.accessToken(), userAndTokens.refreshToken());
 
-        log.info("Email verification successful, authentication cookies set for userId={}", verifyEmailRequest.userId());
+        UserAndAccessToken userAndAccessToken = UserAndAccessToken.builder().accessToken(userAndTokens.accessToken())
+                .userResponseDto(userAndTokens.userResponseDto()).build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiSuccessResponse.<UserResponseDto>builder().success(true).message("Email verified successfully. You are now logged in.")
-                .data(userAndTokens.userResponseDto()).path(request.getRequestURI()).build()
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiSuccessResponse.<UserAndAccessToken>builder()
+                .success(true)
+                .message("Email verified successfully. You are now logged in.")
+                .data(userAndAccessToken)
+                .path(request.getRequestURI()).build()
         );
     }
 
@@ -80,13 +85,18 @@ public class AuthController {
     )
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/login")
-    public ResponseEntity<ApiSuccessResponse<UserResponseDto>> login(@Valid @RequestBody LoginRequestDto loginData, HttpServletResponse response, HttpServletRequest request) {
+    public ResponseEntity<ApiSuccessResponse<UserAndAccessToken>> login(@Valid @RequestBody LoginRequestDto loginData, HttpServletResponse response, HttpServletRequest request) {
         UserAndTokenResponseDto userAndToken = authService.login(loginData);
 
-        cookieUtils.setAuthCookies(response, userAndToken.accessToken(), userAndToken.refreshToken());
-        log.info("Login successful, authentication cookies set for userId={}", userAndToken.userResponseDto().id());
+        UserAndAccessToken userAndAccessToken = UserAndAccessToken.builder().accessToken(userAndToken.accessToken())
+                .userResponseDto(userAndToken.userResponseDto()).build();
 
-        return ResponseEntity.ok().body(ApiSuccessResponse.<UserResponseDto>builder().success(true).message("Login successful").data(userAndToken.userResponseDto()).path(request.getRequestURI()).build());
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiSuccessResponse.<UserAndAccessToken>builder()
+                .success(true)
+                .message("Login successfully.")
+                .data(userAndAccessToken)
+                .path(request.getRequestURI()).build()
+        );
     }
 
     @Operation(
@@ -94,15 +104,20 @@ public class AuthController {
             description = "Generates new access and refresh tokens using the refresh token stored in the authentication cookie"
     )
     @PostMapping("/refresh-token")
-    public ResponseEntity<ApiSuccessResponse<UserResponseDto>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiSuccessResponse<UserAndAccessToken>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = cookieUtils.getRefreshToken(request);
         UserAndTokenResponseDto userAndTokenResponseDto = authService.refreshToken(refreshToken);
         cookieUtils.setAuthCookies(response, userAndTokenResponseDto.accessToken(), userAndTokenResponseDto.refreshToken());
 
-        log.info("Authentication tokens refreshed successfully, cookies updated for userId={}", userAndTokenResponseDto.userResponseDto().id());
+        UserAndAccessToken userAndAccessToken = UserAndAccessToken.builder().accessToken(userAndTokenResponseDto.accessToken())
+                .userResponseDto(userAndTokenResponseDto.userResponseDto()).build();
 
-        return ResponseEntity.ok().body(ApiSuccessResponse.<UserResponseDto>builder().success(true).message("Refresh Token Successfully").data(userAndTokenResponseDto.userResponseDto())
-                .path(request.getRequestURI()).build());
+        return ResponseEntity.ok(ApiSuccessResponse.<UserAndAccessToken>builder()
+                .success(true)
+                .message("Refresh Token Successfully")
+                .data(userAndAccessToken)
+                .path(request.getRequestURI()).build()
+        );
     }
 
     @Operation(
