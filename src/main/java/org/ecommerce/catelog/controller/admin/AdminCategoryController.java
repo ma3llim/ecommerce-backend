@@ -59,6 +59,23 @@ public class AdminCategoryController {
         );
     }
 
+    @GetMapping("/{categoryId}")
+    @Operation(summary = "Get category by ID", description = "Retrieves a category by its ID.")
+    public ResponseEntity<ApiSuccessResponse<CategoryResponse>> getCategoryById(
+            @PathVariable UUID categoryId, HttpServletRequest request
+    ) {
+        CategoryResponse categoryResponse = adminCategoryService.getCategoryById(categoryId);
+
+        return ResponseEntity.ok(
+                ApiSuccessResponse.<CategoryResponse>builder()
+                        .success(true)
+                        .message("Category retrieved successfully")
+                        .data(categoryResponse)
+                        .path(request.getRequestURI())
+                        .build()
+        );
+    }
+
     @Operation(summary = "Update a category", description = "Updates an existing category. Category name, status, and image can be updated independently.")
     @PutMapping(value = "/{categoryId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiSuccessResponse<CategoryResponse>> updateCategory(@PathVariable UUID categoryId,

@@ -70,6 +70,15 @@ public class AdminCategoryService {
         );
     }
 
+    public CategoryResponse getCategoryById(UUID categoryId) {
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> {
+            log.warn("Category not found, categoryId={}", categoryId);
+            return new ResourceNotFoundException("Category not found");
+        });
+
+        return objectMapper.convertValue(category, CategoryResponse.class);
+    }
+
     public CategoryResponse updateCategory(UUID categoryId, UpdateCategoryRequest categoryRequest) {
         String oldPublicId = null;
         Category categoryExisted = categoryRepository.findById(categoryId).orElseThrow(() -> {
