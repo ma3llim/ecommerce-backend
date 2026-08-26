@@ -23,13 +23,13 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
     Page<Category> findAllByActiveTrue(Pageable pageable);
 
     @Query("""
-            SELECT new org.ecommerce.auth.Dtos.request.CategorySummaryResponse(c.id, c.name)
+            SELECT new org.ecommerce.catelog.dtos.admin.response.CategorySummaryResponse(c.id, c.name)
             FROM Category c WHERE c.id IN :ids
             """)
     List<CategorySummaryResponse> findAllByIdIn(@Param("ids") Collection<UUID> ids);
 
     @Query("""
-            SELECT new org.ecommerce.auth.Dtos.request.CategorySummaryResponse(c.id, c.name)
+            SELECT new org.ecommerce.catelog.dtos.admin.response.CategorySummaryResponse(c.id, c.name)
                 FROM Category c WHERE c.active=true
             """)
     Page<CategorySummaryResponse> findActiveCategorySummary(Pageable pageable);

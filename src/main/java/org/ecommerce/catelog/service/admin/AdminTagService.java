@@ -105,4 +105,13 @@ public class AdminTagService {
 
         log.info("Tag deleted successfully. tagId={}, name={}", tagId, tag.getName());
     }
+
+    public TagResponse getById(UUID tagId) {
+        Tag tag = tagRepository.findById(tagId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Tag not found with id: " + tagId
+                ));
+
+        return objectMapper.convertValue(tag, TagResponse.class);
+    }
 }

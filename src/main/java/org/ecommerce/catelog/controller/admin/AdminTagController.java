@@ -65,6 +65,23 @@ public class AdminTagController {
         );
     }
 
+    @Operation(summary = "Get product tag by ID", description = "Retrieves a product tag by its unique identifier.")
+    @GetMapping("/{tagId}")
+    public ResponseEntity<ApiSuccessResponse<TagResponse>> getTagById(
+            @PathVariable UUID tagId, HttpServletRequest request
+    ) {
+        TagResponse data = tagService.getById(tagId);
+
+        return ResponseEntity.ok(
+                ApiSuccessResponse.<TagResponse>builder()
+                        .success(true)
+                        .message("Tag fetched successfully.")
+                        .data(data)
+                        .path(request.getRequestURI())
+                        .build()
+        );
+    }
+
     @Operation(summary = "Update a product tag", description = "Updates the details of an existing product tag.")
     @PutMapping("/{tagId}")
     public ResponseEntity<ApiSuccessResponse<TagResponse>> updateTag(
