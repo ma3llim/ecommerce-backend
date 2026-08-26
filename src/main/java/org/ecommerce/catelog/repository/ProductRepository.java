@@ -1,9 +1,12 @@
 package org.ecommerce.catelog.repository;
 
+import org.ecommerce.catelog.dtos.admin.response.ProductOptionResponse;
 import org.ecommerce.catelog.entities.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,4 +28,11 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     List<Product> findAllByIdInAndPublishedTrue(List<UUID> productIds);
 
     List<Product> findAllByCategoryId(UUID categoryId);
+
+    @Query("""
+            SELECT new org.ecommerce.catelog.dtos.admin.response.ProductOptionResponse(p.id, p.name)
+            FROM Product p
+            WHERE (:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')))
+            """)
+    Page<ProductOptionResponse> findProductOptions(@Param("search") String search, Pageable pageable);
 }

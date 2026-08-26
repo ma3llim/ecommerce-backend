@@ -809,4 +809,17 @@ public class AdminProductService {
 
         productVariantRepository.delete(variant);
     }
+
+    public PageResponse<ProductOptionResponse> getProductOptions(String search, Pageable pageable) {
+        Page<ProductOptionResponse> products = productRepository.findProductOptions(search, pageable);
+
+        return PageResponse.<ProductOptionResponse>builder()
+                .content(products.getContent())
+                .page(products.getNumber())
+                .size(products.getSize())
+                .totalElements(products.getTotalElements())
+                .totalPages(products.getTotalPages())
+                .last(products.isLast())
+                .build();
+    }
 }

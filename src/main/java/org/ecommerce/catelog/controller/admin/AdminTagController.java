@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ecommerce.catelog.dtos.admin.request.TagRequest;
+import org.ecommerce.catelog.dtos.admin.response.TagOptionResponse;
 import org.ecommerce.catelog.dtos.admin.response.TagResponse;
 import org.ecommerce.catelog.service.admin.AdminTagService;
 import org.ecommerce.common.dtos.PageResponse;
@@ -110,6 +111,25 @@ public class AdminTagController {
                         .success(true)
                         .message("Tag deleted successfully.")
                         .data(null).path(request.getRequestURI()).build()
+        );
+    }
+
+    @Operation(summary = "Get tag options", description = "Retrieves a paginated list containing only tag IDs and names.")
+    @GetMapping("/options")
+    public ResponseEntity<ApiSuccessResponse<PageResponse<TagOptionResponse>>> getTagOptions(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable,
+            HttpServletRequest request
+    ) {
+        PageResponse<TagOptionResponse> data = tagService.getTagOptions(search, pageable);
+
+        return ResponseEntity.ok(
+                ApiSuccessResponse.<PageResponse<TagOptionResponse>>builder()
+                        .success(true)
+                        .message("Tag options fetched successfully.")
+                        .data(data)
+                        .path(request.getRequestURI())
+                        .build()
         );
     }
 }

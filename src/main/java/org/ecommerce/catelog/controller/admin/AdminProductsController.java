@@ -302,4 +302,25 @@ public class AdminProductsController {
                 .path(request.getRequestURI()).build()
         );
     }
+
+    @Operation(summary = "Get product options", description = "Retrieves a paginated list containing only product IDs and names."
+    )
+    @GetMapping("/options")
+    public ResponseEntity<ApiSuccessResponse<PageResponse<ProductOptionResponse>>> getProductOptions(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC
+            ) Pageable pageable,
+            HttpServletRequest request
+    ) {
+        PageResponse<ProductOptionResponse> data = adminProductService.getProductOptions(search, pageable);
+
+        return ResponseEntity.ok(
+                ApiSuccessResponse.<PageResponse<ProductOptionResponse>>builder()
+                        .success(true)
+                        .message("Product options fetched successfully.")
+                        .data(data)
+                        .path(request.getRequestURI())
+                        .build()
+        );
+    }
 }

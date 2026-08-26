@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ecommerce.catelog.dtos.admin.request.TagRequest;
+import org.ecommerce.catelog.dtos.admin.response.TagOptionResponse;
 import org.ecommerce.catelog.dtos.admin.response.TagResponse;
 import org.ecommerce.catelog.entities.Tag;
 import org.ecommerce.catelog.repository.ProductTagRepository;
@@ -113,5 +114,18 @@ public class AdminTagService {
                 ));
 
         return objectMapper.convertValue(tag, TagResponse.class);
+    }
+
+    public PageResponse<TagOptionResponse> getTagOptions(String search, Pageable pageable) {
+        Page<TagOptionResponse> tags = tagRepository.findTagOptions(search, pageable);
+
+        return PageResponse.<TagOptionResponse>builder()
+                .content(tags.getContent())
+                .page(tags.getNumber())
+                .size(tags.getSize())
+                .totalElements(tags.getTotalElements())
+                .totalPages(tags.getTotalPages())
+                .last(tags.isLast())
+                .build();
     }
 }
