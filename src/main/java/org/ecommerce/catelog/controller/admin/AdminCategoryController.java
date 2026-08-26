@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.ecommerce.catelog.dtos.admin.request.AddCategoryRequest;
 import org.ecommerce.catelog.dtos.admin.request.UpdateCategoryRequest;
 import org.ecommerce.catelog.dtos.admin.response.CategoryResponse;
+import org.ecommerce.catelog.dtos.admin.response.CategorySummaryResponse;
 import org.ecommerce.catelog.service.admin.AdminCategoryService;
 import org.ecommerce.common.dtos.PageResponse;
 import org.ecommerce.common.response.ApiSuccessResponse;
@@ -97,6 +98,26 @@ public class AdminCategoryController {
                 .message("Category deleted successfully")
                 .data(null)
                 .path(request.getRequestURI()).build()
+        );
+    }
+
+    @Operation(
+            summary = "Get active category list",
+            description = "Returns a paginated list of active categories containing only category ID and category name."
+    )
+    @GetMapping("/category-list")
+    public ResponseEntity<ApiSuccessResponse<PageResponse<CategorySummaryResponse>>> getActiveCategoryList(
+            @PageableDefault(size = 10) Pageable pageable,
+            HttpServletRequest request
+    ) {
+        PageResponse<CategorySummaryResponse> activeCategoryList = adminCategoryService.getActiveCategoryList(pageable);
+        return ResponseEntity.ok(
+                ApiSuccessResponse.<PageResponse<CategorySummaryResponse>>builder()
+                        .success(true)
+                        .message("Active categories fetched successfully")
+                        .data(activeCategoryList)
+                        .path(request.getRequestURI())
+                        .build()
         );
     }
 }

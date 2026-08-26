@@ -1,6 +1,6 @@
 package org.ecommerce.catelog.repository;
 
-import org.ecommerce.auth.Dtos.request.CategorySummary;
+import org.ecommerce.catelog.dtos.admin.response.CategorySummaryResponse;
 import org.ecommerce.catelog.entities.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,8 +23,14 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
     Page<Category> findAllByActiveTrue(Pageable pageable);
 
     @Query("""
-            SELECT new org.ecommerce.auth.Dtos.request.CategorySummary(c.id, c.name)
+            SELECT new org.ecommerce.auth.Dtos.request.CategorySummaryResponse(c.id, c.name)
             FROM Category c WHERE c.id IN :ids
             """)
-    List<CategorySummary> findAllByIdIn(@Param("ids") Collection<UUID> ids);
+    List<CategorySummaryResponse> findAllByIdIn(@Param("ids") Collection<UUID> ids);
+
+    @Query("""
+            SELECT new org.ecommerce.auth.Dtos.request.CategorySummaryResponse(c.id, c.name)
+                FROM Category c WHERE c.active=true
+            """)
+    Page<CategorySummaryResponse> findActiveCategorySummary(Pageable pageable);
 }

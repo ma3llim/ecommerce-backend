@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.ecommerce.catelog.dtos.admin.request.AddCategoryRequest;
 import org.ecommerce.catelog.dtos.admin.request.UpdateCategoryRequest;
 import org.ecommerce.catelog.dtos.admin.response.CategoryResponse;
+import org.ecommerce.catelog.dtos.admin.response.CategorySummaryResponse;
 import org.ecommerce.catelog.entities.Category;
 import org.ecommerce.catelog.entities.Product;
 import org.ecommerce.catelog.repository.CategoryRepository;
@@ -148,5 +149,18 @@ public class AdminCategoryService {
 
         log.info("Category deleted successfully, categoryId={}", categoryId);
     }
+
+    public PageResponse<CategorySummaryResponse> getActiveCategoryList(Pageable pageable) {
+        Page<CategorySummaryResponse> categories = categoryRepository.findActiveCategorySummary(pageable);
+
+        return new PageResponse<>(
+                categories.getContent(),
+                categories.getNumber(),
+                categories.getSize(),
+                categories.getTotalElements(),
+                categories.getTotalPages(),
+                categories.isFirst(),
+                categories.isLast()
+        );
+    }
 }
-.
