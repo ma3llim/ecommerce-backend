@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.ecommerce.auth.Dtos.request.CategorySummary;
 import org.ecommerce.catelog.dtos.admin.request.*;
 import org.ecommerce.catelog.dtos.admin.response.*;
 import org.ecommerce.catelog.entities.*;
@@ -47,8 +48,23 @@ public class AdminProductService {
     public PageResponse<ProductResponse> getProducts(Pageable pageable) {
         Page<Product> products = productRepository.findAll(pageable);
 
-        Page<ProductResponse> productResponses = products.map(
-                product -> objectMapper.convertValue(product, ProductResponse.class));
+        Set<UUID> categoryIds = products.getContent().stream().map(Product::getCategoryId).filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<UUID, String> categoryMap = categoryRepository.findAllByIdIn(categoryIds).stream()
+                .collect(Collectors.toMap(CategorySummary::id, CategorySummary::name));
+
+        Page<ProductResponse> productResponses = products.map(product -> new ProductResponse(
+                product.getId(),
+                product.getCategoryId(),
+                categoryMap.get(product.getCategoryId()),
+                product.getName(),
+                product.getDescription(),
+                product.getSpecifications(),
+                product.isPublished(),
+                product.getCreatedAt()
+        ));
+
 
         return new PageResponse<>(
                 productResponses.getContent(),

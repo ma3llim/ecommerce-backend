@@ -7,7 +7,9 @@ import org.ecommerce.catelog.dtos.admin.request.AddCategoryRequest;
 import org.ecommerce.catelog.dtos.admin.request.UpdateCategoryRequest;
 import org.ecommerce.catelog.dtos.admin.response.CategoryResponse;
 import org.ecommerce.catelog.entities.Category;
+import org.ecommerce.catelog.entities.Product;
 import org.ecommerce.catelog.repository.CategoryRepository;
+import org.ecommerce.catelog.repository.ProductRepository;
 import org.ecommerce.common.dtos.CloudinaryUploadResult;
 import org.ecommerce.common.dtos.PageResponse;
 import org.ecommerce.common.enums.CloudinaryFolder;
@@ -18,7 +20,9 @@ import org.ecommerce.common.utils.SlugUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -28,6 +32,8 @@ public class AdminCategoryService {
     private final CategoryRepository categoryRepository;
     private final CloudinaryService cloudinaryService;
     private final ObjectMapper objectMapper;
+    private final ProductRepository productRepository;
+    private final AdminProductService adminProductService;
 
     public CategoryResponse createCategory(AddCategoryRequest newCategory) {
         String categorySlug = SlugUtils.generateSlug(newCategory.name());
@@ -119,16 +125,28 @@ public class AdminCategoryService {
         return objectMapper.convertValue(categoryExisted, CategoryResponse.class);
     }
 
+    @Transactional
     public void deleteCategory(UUID categoryId) {
         Category categoryExisted = categoryRepository.findById(categoryId).orElseThrow(() -> {
             log.warn("Delete category request failed: category not found, categoryId={}", categoryId);
             return new ResourceNotFoundException("Category is not found");
         });
+
+        List<Product> products = productRepository.findAllByCategoryId(categoryId);
+
+        if (!products.isEmpty()) {
+            products.forEach(product -> {
+                adminProductService.deleteProduct(product.getId());
+            });
+        }
+
         String categoryImagePublicId = categoryExisted.getImagePublicId();
 
         categoryRepository.deleteById(categoryId);
         cloudinaryService.removeImage(categoryImagePublicId);
 
+
         log.info("Category deleted successfully, categoryId={}", categoryId);
     }
 }
+.

@@ -7,13 +7,11 @@ import java.util.UUID;
 public record ProductResponse(
         UUID id,
         UUID categoryId,
+        String categoryName,
         String name,
-        String slug,
         String description,
         Map<String, Object> specifications,
-        UUID defaultVariantId,
         boolean published,
-        Instant createdAt,
-        Instant updatedAt
+        Instant createdAt
 ) {
 }
