@@ -307,17 +307,33 @@ public class AdminProductsController {
     )
     @GetMapping("/options")
     public ResponseEntity<ApiSuccessResponse<PageResponse<ProductOptionResponse>>> getProductOptions(
-            @RequestParam(required = false) String search,
-            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC
-            ) Pageable pageable,
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable,
             HttpServletRequest request
     ) {
-        PageResponse<ProductOptionResponse> data = adminProductService.getProductOptions(search, pageable);
+        PageResponse<ProductOptionResponse> data = adminProductService.getProductOptions(pageable);
 
         return ResponseEntity.ok(
                 ApiSuccessResponse.<PageResponse<ProductOptionResponse>>builder()
                         .success(true)
                         .message("Product options fetched successfully.")
+                        .data(data)
+                        .path(request.getRequestURI())
+                        .build()
+        );
+    }
+
+    @Operation(summary = "Get product tag options", description = "Retrieves paginated product and tag information.")
+    @GetMapping("/product-tags/options")
+    public ResponseEntity<ApiSuccessResponse<PageResponse<ProductTagOptionResponse>>> getProductTagOptions(
+            @PageableDefault(size = 10) Pageable pageable,
+            HttpServletRequest request
+    ) {
+        PageResponse<ProductTagOptionResponse> data = adminProductService.getProductTagOptions(pageable);
+
+        return ResponseEntity.ok(
+                ApiSuccessResponse.<PageResponse<ProductTagOptionResponse>>builder()
+                        .success(true)
+                        .message("Product tag options fetched successfully.")
                         .data(data)
                         .path(request.getRequestURI())
                         .build()

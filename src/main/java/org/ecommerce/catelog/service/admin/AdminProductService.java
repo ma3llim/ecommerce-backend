@@ -810,8 +810,8 @@ public class AdminProductService {
         productVariantRepository.delete(variant);
     }
 
-    public PageResponse<ProductOptionResponse> getProductOptions(String search, Pageable pageable) {
-        Page<ProductOptionResponse> products = productRepository.findProductOptions(search, pageable);
+    public PageResponse<ProductOptionResponse> getProductOptions(Pageable pageable) {
+        Page<ProductOptionResponse> products = productRepository.findProductOptions(pageable);
 
         return PageResponse.<ProductOptionResponse>builder()
                 .content(products.getContent())
@@ -820,6 +820,19 @@ public class AdminProductService {
                 .totalElements(products.getTotalElements())
                 .totalPages(products.getTotalPages())
                 .last(products.isLast())
+                .build();
+    }
+
+    public PageResponse<ProductTagOptionResponse> getProductTagOptions(Pageable pageable) {
+        Page<ProductTagOptionResponse> result = productTagRepository.findProductTagOptions(pageable);
+
+        return PageResponse.<ProductTagOptionResponse>builder()
+                .content(result.getContent())
+                .page(result.getNumber())
+                .size(result.getSize())
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .last(result.isLast())
                 .build();
     }
 }

@@ -117,11 +117,10 @@ public class AdminTagController {
     @Operation(summary = "Get tag options", description = "Retrieves a paginated list containing only tag IDs and names.")
     @GetMapping("/options")
     public ResponseEntity<ApiSuccessResponse<PageResponse<TagOptionResponse>>> getTagOptions(
-            @RequestParam(required = false) String search,
-            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable,
+            @PageableDefault(size = 10) Pageable pageable,
             HttpServletRequest request
     ) {
-        PageResponse<TagOptionResponse> data = tagService.getTagOptions(search, pageable);
+        PageResponse<TagOptionResponse> data = tagService.getTagOptions(pageable);
 
         return ResponseEntity.ok(
                 ApiSuccessResponse.<PageResponse<TagOptionResponse>>builder()

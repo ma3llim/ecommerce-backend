@@ -116,8 +116,8 @@ public class AdminTagService {
         return objectMapper.convertValue(tag, TagResponse.class);
     }
 
-    public PageResponse<TagOptionResponse> getTagOptions(String search, Pageable pageable) {
-        Page<TagOptionResponse> tags = tagRepository.findTagOptions(search, pageable);
+    public PageResponse<TagOptionResponse> getTagOptions(Pageable pageable) {
+        Page<TagOptionResponse> tags = tagRepository.findTagOptions(pageable);
 
         return PageResponse.<TagOptionResponse>builder()
                 .content(tags.getContent())
