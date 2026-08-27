@@ -47,4 +47,6 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
                       AND pv.id = oi.product_variant_id
             """, nativeQuery = true)
     int restoreStock(@Param("orderId") UUID orderId);
+
+    Optional<ProductVariant> findByIdAndProductId(UUID variantId, UUID productId);
 }

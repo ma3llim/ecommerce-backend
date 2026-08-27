@@ -835,4 +835,68 @@ public class AdminProductService {
                 .last(result.isLast())
                 .build();
     }
+
+    public List<ProductVariantResponse> getVariantByProductId(UUID productId) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> {
+            log.warn("get product variant by product: product not found. productId={}", productId);
+            return new ResourceNotFoundException("Product not found");
+        });
+
+        List<ProductVariant> variants = productVariantRepository.findAllByProductId(productId);
+
+        List<UUID> variantIds = variants.stream().map(ProductVariant::getId).toList();
+
+        List<ProductVariantImage> variantImages = variantIds.isEmpty() ? List.of() :
+                productVariantImageRepository.findAllByProductVariantIdIn(variantIds);
+
+        Map<UUID, List<ProductVariantImage>> imagesByVariantId = variantImages.stream()
+                .collect(Collectors.groupingBy(ProductVariantImage::getProductVariantId));
+
+        List<ProductVariantResponse> variantResponses = variants.stream()
+                .map(productVariant -> {
+                    List<ProductVariantImageResponse> imageResponses = imagesByVariantId
+                            .getOrDefault(productVariant.getId(), List.of())
+                            .stream()
+                            .map(image -> new ProductVariantImageResponse(
+                                    image.getId(),
+                                    image.getImageUrl(),
+                                    image.getDisplayOrder(),
+                                    image.isPrimary())
+                            ).toList();
+
+                    return new ProductVariantResponse(
+                            productVariant.getId(),
+                            productVariant.getSku(),
+                            productVariant.getPrice(),
+                            productVariant.getStockQuantity(),
+                            productVariant.getAttributes(),
+                            productVariant.isActive(),
+                            imageResponses
+                    );
+                }).toList();
+
+        return variantResponses;
+    }
+
+    public ProductVariantResponse getVariantByProductIdAndVariantId(UUID productId, UUID variantId) {
+        productRepository.findById(productId).orElseThrow(() -> {
+            log.warn("get product variant: product not found. productId={}", productId);
+            return new ResourceNotFoundException("Product not found");
+        });
+
+        ProductVariant productVariant = productVariantRepository.findByIdAndProductId(variantId, productId).orElseThrow(() -> {
+            log.warn("get product variant: variant not found. productId={}, variantId={}", productId, variantId);
+            return new ResourceNotFoundException("Product variant not found");
+        });
+
+        return new ProductVariantResponse(
+                productVariant.getId(),
+                productVariant.getSku(),
+                productVariant.getPrice(),
+                productVariant.getStockQuantity(),
+                productVariant.getAttributes(),
+                productVariant.isActive(),
+                null
+        );
+    }
 }

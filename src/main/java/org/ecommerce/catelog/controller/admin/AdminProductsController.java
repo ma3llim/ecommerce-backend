@@ -148,6 +148,28 @@ public class AdminProductsController {
         );
     }
 
+    @Operation(
+            summary = "Get product variant by product and variant ID",
+            description = "Retrieves a specific product variant belonging to the specified product."
+    )
+    @GetMapping("/{productId}/variants/{variantId}")
+    public ResponseEntity<ApiSuccessResponse<ProductVariantResponse>> getProductVariant(
+            @PathVariable UUID productId,
+            @PathVariable UUID variantId,
+            HttpServletRequest request
+    ) {
+        ProductVariantResponse data = adminProductService.getVariantByProductIdAndVariantId(productId, variantId);
+
+        return ResponseEntity.ok(
+                ApiSuccessResponse.<ProductVariantResponse>builder()
+                        .success(true)
+                        .message("Product variant fetched successfully.")
+                        .data(data)
+                        .path(request.getRequestURI())
+                        .build()
+        );
+    }
+
     @Operation(summary = "Update product variant", description = "Updates an existing product variant, including its price, stock quantity, and attributes.")
     @PutMapping("/{productId}/variants/{variantId}")
     public ResponseEntity<ApiSuccessResponse<ProductVariantResponse>> updateVariants(
@@ -334,6 +356,27 @@ public class AdminProductsController {
                 ApiSuccessResponse.<PageResponse<ProductTagOptionResponse>>builder()
                         .success(true)
                         .message("Product tag options fetched successfully.")
+                        .data(data)
+                        .path(request.getRequestURI())
+                        .build()
+        );
+    }
+
+    @Operation(
+            summary = "Get product variants by product ID",
+            description = "Retrieves all product variants associated with a product."
+    )
+    @GetMapping("/{productId}/variants")
+    public ResponseEntity<ApiSuccessResponse<List<ProductVariantResponse>>> getProductVariantsByProductId(
+            @PathVariable UUID productId,
+            HttpServletRequest request
+    ) {
+        List<ProductVariantResponse> data = adminProductService.getVariantByProductId(productId);
+
+        return ResponseEntity.ok(
+                ApiSuccessResponse.<List<ProductVariantResponse>>builder()
+                        .success(true)
+                        .message("Product variants fetched successfully.")
                         .data(data)
                         .path(request.getRequestURI())
                         .build()
