@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.ecommerce.admin.dashboard.dto.DashboardSummaryResponse;
 import org.ecommerce.admin.dashboard.dto.OrderStatisticsResponse;
 import org.ecommerce.admin.dashboard.dto.ProductCategoryStatisticsResponse;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/v1/admin/dashboard")
 @RequiredArgsConstructor
