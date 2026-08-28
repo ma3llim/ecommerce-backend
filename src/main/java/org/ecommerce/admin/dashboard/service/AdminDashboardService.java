@@ -9,10 +9,12 @@ import org.ecommerce.admin.dashboard.dto.UserStatisticsResponse;
 import org.ecommerce.auth.repository.UserRepository;
 import org.ecommerce.catelog.repository.CategoryRepository;
 import org.ecommerce.catelog.repository.ProductRepository;
+import org.ecommerce.common.constants.RedisKeyConstants;
 import org.ecommerce.coupon.repository.CouponRepository;
 import org.ecommerce.order.repository.OrderRepository;
 import org.ecommerce.order.repository.PaymentRepository;
 import org.ecommerce.review.repository.ReviewRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,6 +31,7 @@ public class AdminDashboardService {
     private final CouponRepository adminDashboardCouponRepository;
     private final PaymentRepository adminDashboardPaymentRepository;
 
+    @Cacheable(value = RedisKeyConstants.DASHBOARD_SUMMARY, key = "'summary'")
     public DashboardSummaryResponse getSummary() {
 
         DashboardSummaryResponse response = DashboardSummaryResponse.builder()
@@ -50,6 +53,7 @@ public class AdminDashboardService {
         return response;
     }
 
+    @Cacheable(value = RedisKeyConstants.DASHBOARD_USERS, key = "'monthly'")
     public List<UserStatisticsResponse> getUserStatistics() {
 
         return adminDashboardUserRepository.getMonthlyUserStatistics()
@@ -61,6 +65,7 @@ public class AdminDashboardService {
                 .toList();
     }
 
+    @Cacheable(value = RedisKeyConstants.DASHBOARD_ORDERS, key = "'status'")
     public List<OrderStatisticsResponse> getOrderStatistics() {
 
         return adminDashboardOrderRepository.getOrderStatusStatistics().stream()
@@ -71,6 +76,7 @@ public class AdminDashboardService {
                 .toList();
     }
 
+    @Cacheable(value = RedisKeyConstants.DASHBOARD_PRODUCTS, key = "'category'")
     public List<ProductCategoryStatisticsResponse> getProductCategoryStatistics() {
 
         return adminDashboardProductRepository.getProductCategoryStatistics()
