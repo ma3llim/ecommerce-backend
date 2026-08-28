@@ -1,5 +1,6 @@
 package org.ecommerce.catelog.repository;
 
+import org.ecommerce.admin.dashboard.projection.ProductCategoryStatisticsProjection;
 import org.ecommerce.catelog.dtos.admin.response.ProductOptionResponse;
 import org.ecommerce.catelog.entities.Product;
 import org.springframework.data.domain.Page;
@@ -33,4 +34,10 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
             FROM Product p
             """)
     Page<ProductOptionResponse> findProductOptions(Pageable pageable);
+
+    @Query(value = """
+            SELECT c.name AS category, COUNT(p.id) AS count FROM products p
+            JOIN categories c ON p.category_id = c.id GROUP BY c.name ORDER BY c.name
+            """, nativeQuery = true)
+    List<ProductCategoryStatisticsProjection> getProductCategoryStatistics();
 }

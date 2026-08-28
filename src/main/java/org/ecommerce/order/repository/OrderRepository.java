@@ -1,5 +1,6 @@
 package org.ecommerce.order.repository;
 
+import org.ecommerce.admin.dashboard.projection.OrderStatusStatisticsProjection;
 import org.ecommerce.order.entities.Order;
 import org.ecommerce.order.enums.OrderStatus;
 import org.ecommerce.order.enums.PaymentStatus;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,4 +45,10 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             @Param("paymentStatus") PaymentStatus paymentStatus,
             Pageable pageable
     );
+
+    @Query("""
+                SELECT o.orderStatus AS status, COUNT(o) AS count
+                FROM Order o GROUP BY o.orderStatus
+            """)
+    List<OrderStatusStatisticsProjection> getOrderStatusStatistics();
 }
