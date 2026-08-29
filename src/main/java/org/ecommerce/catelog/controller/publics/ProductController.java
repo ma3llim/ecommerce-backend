@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.ecommerce.catelog.dtos.publics.ProductDetailsResponse;
 import org.ecommerce.catelog.dtos.publics.ProductListResponse;
 import org.ecommerce.catelog.dtos.publics.ProductReviewResponse;
+import org.ecommerce.catelog.dtos.publics.ProductSearchResponse;
 import org.ecommerce.catelog.service.publics.ProductService;
 import org.ecommerce.common.dtos.PageResponse;
 import org.ecommerce.common.response.ApiSuccessResponse;
@@ -72,6 +73,25 @@ public class ProductController {
                         .success(true)
                         .message("Product reviews fetched successfully")
                         .data(productReviewResponse)
+                        .path(request.getRequestURI()).build()
+        );
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "Search products for selection",
+            description = "Searches products by name and returns only the product ID, name, and slug.")
+    public ResponseEntity<ApiSuccessResponse<PageResponse<ProductSearchResponse>>> searchProducts(
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable,
+            HttpServletRequest request
+    ) {
+        PageResponse<ProductSearchResponse> searchProducts = productService.searchForProducts(keyword, pageable);
+
+        return ResponseEntity.ok(
+                ApiSuccessResponse.<PageResponse<ProductSearchResponse>>builder()
+                        .success(true)
+                        .message("Product search fetched successfully")
+                        .data(searchProducts)
                         .path(request.getRequestURI()).build()
         );
     }

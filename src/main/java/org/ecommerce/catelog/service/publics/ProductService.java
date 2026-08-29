@@ -1,5 +1,6 @@
 package org.ecommerce.catelog.service.publics;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ecommerce.catelog.dtos.publics.*;
@@ -33,6 +34,7 @@ public class ProductService {
     private final ProductVariantImageRepository productVariantImageRepository;
     private final ProductFaqRepository productFaqRepository;
     private final ReviewRepository reviewRepository;
+    private final ObjectMapper objectMapper;
 
     public PageResponse<ProductListResponse> allProducts(String category, Pageable pageable) {
         Page<Product> products;
@@ -170,6 +172,26 @@ public class ProductService {
                 reviews.getTotalPages(),
                 reviews.isFirst(),
                 reviews.isLast()
+        );
+    }
+
+    public PageResponse<ProductSearchResponse> searchForProducts(String keyword, Pageable pageable) {
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+
+        Page<ProductSearchResponse> productSearchResponses = productRepository.searchProducts(normalizedKeyword, pageable);
+
+        List<ProductSearchResponse> content = productSearchResponses.getContent().stream()
+                .map(product -> objectMapper.convertValue(product, ProductSearchResponse.class))
+                .toList();
+
+        return new PageResponse<>(
+                content,
+                productSearchResponses.getNumber(),
+                productSearchResponses.getSize(),
+                productSearchResponses.getTotalElements(),
+                productSearchResponses.getTotalPages(),
+                productSearchResponses.isFirst(),
+                productSearchResponses.isLast()
         );
     }
 }
