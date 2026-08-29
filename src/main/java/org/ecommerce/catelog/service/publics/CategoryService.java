@@ -7,7 +7,6 @@ import org.ecommerce.catelog.dtos.admin.response.CategoryResponse;
 import org.ecommerce.catelog.entities.Category;
 import org.ecommerce.catelog.repository.CategoryRepository;
 import org.ecommerce.common.dtos.PageResponse;
-import org.ecommerce.common.exception.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,14 +33,5 @@ public class CategoryService {
                 categoriesInfoResponse.isFirst(),
                 categoriesInfoResponse.isLast()
         );
-    }
-
-    public CategoryResponse getCategoryBySlug(String slug) {
-        Category category = categoryRepository.findBySlugAndActiveTrue(slug).orElseThrow(() -> {
-            log.warn("Active category not found. slug={}", slug);
-            return new ResourceNotFoundException("Category with slug " + slug + " was not found.");
-        });
-
-        return objectMapper.convertValue(category, CategoryResponse.class);
     }
 }

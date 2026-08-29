@@ -11,7 +11,6 @@ import org.ecommerce.common.response.ApiSuccessResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,22 +31,6 @@ public class CategoryController {
                 ApiSuccessResponse.<PageResponse<CategoryResponse>>builder()
                         .success(true)
                         .message("Categories fetched successfully.")
-                        .data(data)
-                        .path(request.getRequestURI())
-                        .build()
-        );
-    }
-
-    @Operation(summary = "Get category by slug", description = "Retrieves an active product category using its unique slug.")
-    @GetMapping("/{slug}")
-    public ResponseEntity<ApiSuccessResponse<CategoryResponse>> getCategoryBySlug(
-            @PathVariable String slug, HttpServletRequest request) {
-        CategoryResponse data = categoryService.getCategoryBySlug(slug);
-
-        return ResponseEntity.ok(
-                ApiSuccessResponse.<CategoryResponse>builder()
-                        .success(true)
-                        .message("Category fetched successfully.")
                         .data(data)
                         .path(request.getRequestURI())
                         .build()
