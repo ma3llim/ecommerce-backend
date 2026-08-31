@@ -12,7 +12,11 @@ import org.ecommerce.cart.entities.Cart;
 import org.ecommerce.cart.entities.CartItem;
 import org.ecommerce.cart.repository.CartItemRepository;
 import org.ecommerce.cart.repository.CartRepository;
+import org.ecommerce.catelog.entities.Product;
 import org.ecommerce.catelog.entities.ProductVariant;
+import org.ecommerce.catelog.entities.ProductVariantImage;
+import org.ecommerce.catelog.repository.ProductRepository;
+import org.ecommerce.catelog.repository.ProductVariantImageRepository;
 import org.ecommerce.catelog.repository.ProductVariantRepository;
 import org.ecommerce.common.exception.BadRequestException;
 import org.ecommerce.common.exception.ResourceNotFoundException;
@@ -22,7 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +38,9 @@ public class CartService {
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final ProductRepository productRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final ProductVariantImageRepository productVariantImageRepository;
 
     public CartResponse getCart(Authentication authentication) {
         UUID userId = ((User) authentication.getPrincipal()).getId();
@@ -47,7 +56,53 @@ public class CartService {
 
         List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
 
-        return buildCartResponse(cart, items);
+        if (items.isEmpty()) {
+            return new CartResponse(cart.getId(), cart.getTotalAmount(), List.of()
+            );
+        }
+
+        // all variants IDs
+        List<UUID> variantIds = items.stream().map(CartItem::getProductVariantId).distinct().toList();
+
+        // all variants
+        List<ProductVariant> variants = productVariantRepository.findAllById(variantIds);
+
+        Map<UUID, ProductVariant> variantMap = variants.stream().collect(Collectors.toMap(ProductVariant::getId, Function.identity()));
+
+        List<UUID> productIds = variants.stream().map(ProductVariant::getProductId).distinct().toList();
+
+        Map<UUID, Product> productMap = productRepository.findAllById(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+
+        Map<UUID, ProductVariantImage> imageMap = productVariantImageRepository.findAllByProductVariantIdInAndPrimaryTrue(variantIds)
+                .stream().collect(Collectors.toMap(ProductVariantImage::getProductVariantId, Function.identity()));
+
+        List<CartItemResponse> cartItemResponses = items.stream().map(cartItem -> {
+                    ProductVariant productVariant = variantMap.get(cartItem.getProductVariantId());
+                    if (productVariant == null) {
+                        throw new ResourceNotFoundException("Product Variant is not found");
+                    }
+
+                    Product product = productMap.get(productVariant.getProductId());
+                    if (product == null) {
+                        throw new ResourceNotFoundException("Product is not found");
+                    }
+
+                    ProductVariantImage image = imageMap.get(cartItem.getProductVariantId());
+
+                    return new CartItemResponse(
+                            cartItem.getId(),
+                            product.getSlug(),
+                            image != null ? image.getImageUrl() : null,
+                            cartItem.getProductVariantId(),
+                            cartItem.getQuantity(),
+                            cartItem.getUnitPrice(),
+                            cartItem.getTotalPrice()
+                    );
+                })
+                .toList();
+
+        return buildCartResponseGet(cart, cartItemResponses);
     }
 
     public CartResponse addItem(AddCartItemRequest request, Authentication authentication) {
@@ -230,12 +285,18 @@ public class CartService {
     private CartResponse buildCartResponse(Cart cart, List<CartItem> items) {
         List<CartItemResponse> itemResponses = items.stream().map(item -> new CartItemResponse(
                 item.getId(),
+                null,
+                null,
                 item.getProductVariantId(),
                 item.getQuantity(),
                 item.getUnitPrice(),
                 item.getTotalPrice()
         )).toList();
 
+        return new CartResponse(cart.getId(), cart.getTotalAmount(), itemResponses);
+    }
+
+    private CartResponse buildCartResponseGet(Cart cart, List<CartItemResponse> itemResponses) {
         return new CartResponse(cart.getId(), cart.getTotalAmount(), itemResponses);
     }
 }
