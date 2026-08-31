@@ -92,6 +92,7 @@ public class CartService {
 
                     return new CartItemResponse(
                             cartItem.getId(),
+                            product.getName(),
                             product.getSlug(),
                             image != null ? image.getImageUrl() : null,
                             cartItem.getProductVariantId(),
@@ -105,7 +106,7 @@ public class CartService {
         return buildCartResponseGet(cart, cartItemResponses);
     }
 
-    public CartResponse addItem(AddCartItemRequest request, Authentication authentication) {
+    public void addItem(AddCartItemRequest request, Authentication authentication) {
         UUID userId = ((User) authentication.getPrincipal()).getId();
 
         User user = userRepository.findById(userId).orElseThrow(() -> {
@@ -115,7 +116,7 @@ public class CartService {
 
         ProductVariant variant = productVariantRepository.findByIdAndActiveTrue(request.productVariantId()).orElseThrow(() -> {
             log.warn("Add cart item failed: active product variant not found. variantId={}, userId={}",
-                    request.productVariantId(), userId);
+                    request.productVariantId(), user.getId());
             return new ResourceNotFoundException("Product variant not found");
         });
 
@@ -165,14 +166,10 @@ public class CartService {
         cartItemRepository.save(cartItem);
 
         recalculateCartTotal(cart);
-
-        List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
-
-        return buildCartResponse(cart, items);
     }
 
     @Transactional
-    public CartResponse updateItem(UUID itemId, UpdateCartItemRequest request, Authentication authentication) {
+    public void updateItem(UUID itemId, UpdateCartItemRequest request, Authentication authentication) {
         UUID userId = ((User) authentication.getPrincipal()).getId();
         User user = userRepository.findById(userId).orElseThrow(() -> {
             log.warn("Update item in cart request failed: user not found, userId={}", userId);
@@ -185,7 +182,7 @@ public class CartService {
         }
 
         Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> {
-            log.warn("Update cart item failed: cart not found. userId={}", userId);
+            log.warn("Update cart item failed: cart not found. userId={}", user.getId());
             return new ResourceNotFoundException("Cart not found");
         });
 
@@ -216,14 +213,10 @@ public class CartService {
         cartItemRepository.save(cartItem);
 
         recalculateCartTotal(cart);
-
-        List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
-
-        return buildCartResponse(cart, items);
     }
 
     @Transactional
-    public CartResponse deleteItem(UUID itemId, Authentication authentication) {
+    public void deleteItem(UUID itemId, Authentication authentication) {
         UUID userId = ((User) authentication.getPrincipal()).getId();
         User user = userRepository.findById(userId).orElseThrow(() -> {
             log.warn("delete item in cart request failed: user not found, userId={}", userId);
@@ -231,7 +224,7 @@ public class CartService {
         });
 
         Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> {
-            log.warn("Delete cart item failed: cart not found. userId={}", userId);
+            log.warn("Delete cart item failed: cart not found. userId={}", user.getId());
             return new ResourceNotFoundException("Cart not found");
         });
 
@@ -243,12 +236,8 @@ public class CartService {
         cartItemRepository.delete(cartItem);
 
         recalculateCartTotal(cart);
-
-        List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
-
         log.info("Cart item deleted successfully. itemId={}, cartId={}, userId={}",
                 itemId, cart.getId(), userId);
-        return buildCartResponse(cart, items);
     }
 
     @Transactional
@@ -260,7 +249,7 @@ public class CartService {
         });
 
         Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> {
-            log.warn("Clear cart failed: cart not found. userId={}", userId);
+            log.warn("Clear cart failed: cart not found. userId={}", user.getId());
             return new ResourceNotFoundException("Cart not found");
         });
 
@@ -280,20 +269,6 @@ public class CartService {
         cart.setTotalAmount(total);
 
         cartRepository.save(cart);
-    }
-
-    private CartResponse buildCartResponse(Cart cart, List<CartItem> items) {
-        List<CartItemResponse> itemResponses = items.stream().map(item -> new CartItemResponse(
-                item.getId(),
-                null,
-                null,
-                item.getProductVariantId(),
-                item.getQuantity(),
-                item.getUnitPrice(),
-                item.getTotalPrice()
-        )).toList();
-
-        return new CartResponse(cart.getId(), cart.getTotalAmount(), itemResponses);
     }
 
     private CartResponse buildCartResponseGet(Cart cart, List<CartItemResponse> itemResponses) {

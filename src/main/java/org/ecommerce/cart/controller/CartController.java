@@ -45,15 +45,15 @@ public class CartController {
     @Operation(summary = "Add product to cart",
             description = "Adds a product variant to the authenticated user's cart. The requested quantity must be available in stock.")
     @PostMapping("/items")
-    public ResponseEntity<ApiSuccessResponse<CartResponse>> addItem(
+    public ResponseEntity<ApiSuccessResponse<Void>> addItem(
             @Valid @RequestBody AddCartItemRequest request, Authentication authentication,
             HttpServletRequest httpRequest
     ) {
-        CartResponse response = cartService.addItem(request, authentication);
+        cartService.addItem(request, authentication);
 
-        return ResponseEntity.ok(ApiSuccessResponse.<CartResponse>builder()
+        return ResponseEntity.ok(ApiSuccessResponse.<Void>builder()
                 .success(true).message("Product added to cart successfully")
-                .data(response)
+                .data(null)
                 .path(httpRequest.getRequestURI())
                 .build()
         );
@@ -61,16 +61,16 @@ public class CartController {
 
     @Operation(summary = "Update cart item quantity", description = "Updates the quantity of an existing cart item for the authenticated user.")
     @PatchMapping("/items/{itemId}")
-    public ResponseEntity<ApiSuccessResponse<CartResponse>> updateItem(
+    public ResponseEntity<ApiSuccessResponse<Void>> updateItem(
             @PathVariable UUID itemId,
             @Valid @RequestBody UpdateCartItemRequest request, Authentication authentication,
             HttpServletRequest httpRequest
     ) {
-        CartResponse response = cartService.updateItem(itemId, request, authentication);
+        cartService.updateItem(itemId, request, authentication);
 
-        return ResponseEntity.ok(ApiSuccessResponse.<CartResponse>builder()
+        return ResponseEntity.ok(ApiSuccessResponse.<Void>builder()
                 .success(true).message("Cart item updated successfully")
-                .data(response)
+                .data(null)
                 .path(httpRequest.getRequestURI())
                 .build()
         );
@@ -78,14 +78,14 @@ public class CartController {
 
     @Operation(summary = "Remove item from cart", description = "Removes a specific item from the authenticated user's cart.")
     @DeleteMapping("/items/{id}")
-    public ResponseEntity<ApiSuccessResponse<CartResponse>> deleteItem(
+    public ResponseEntity<ApiSuccessResponse<Void>> deleteItem(
             @PathVariable UUID id, Authentication authentication, HttpServletRequest httpRequest
     ) {
-        CartResponse response = cartService.deleteItem(id, authentication);
+        cartService.deleteItem(id, authentication);
 
-        return ResponseEntity.ok(ApiSuccessResponse.<CartResponse>builder()
+        return ResponseEntity.ok(ApiSuccessResponse.<Void>builder()
                 .success(true).message("Cart item removed successfully")
-                .data(response)
+                .data(null)
                 .path(httpRequest.getRequestURI())
                 .build()
         );
