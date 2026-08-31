@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class ImageValidator implements ConstraintValidator<ValidImage, MultipartFile> {
     private static final long MAX_SIZE = 5 * 1024 * 1024;
-    private static final Set<String> ALLOWED_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
+    private static final Set<String> ALLOWED_TYPES = Set.of("image/jpeg", "image/png");
     private final Tika tika = new Tika();
 
     @Override

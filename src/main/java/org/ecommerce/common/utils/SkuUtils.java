@@ -12,7 +12,7 @@ public final class SkuUtils {
         String randomCode = UUID.randomUUID().toString().replace("-", "")
                 .substring(0, 6).toUpperCase();
 
-        return productCode + "-" + "-" + variantCode + "-" + randomCode;
+        return productCode + "-" + variantCode + "-" + randomCode;
     }
 
     private static String generateCode(String value, int maxLength) {

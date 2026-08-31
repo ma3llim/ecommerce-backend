@@ -270,19 +270,19 @@ public class AdminProductService {
 
         ProductVariant savedVariant = productVariantRepository.save(variant);
 
+        if (product.getDefaultVariantId() == null) {
+            product.setDefaultVariantId(savedVariant.getId());
+            productRepository.save(product);
+            log.info("Default variant assigned to product, productId={}, variantId={}",
+                    productId, savedVariant.getId());
+        }
+
         List<ProductVariantImage> variantImages = List.of();
 
         if (addProductVariants.images() != null && !addProductVariants.images().isEmpty()) {
             variantImages = uploadAndCreateImageRecords(savedVariant.getId(), addProductVariants.images());
 
             productVariantImageRepository.saveAll(variantImages);
-
-            if (product.getDefaultVariantId() == null) {
-                product.setDefaultVariantId(savedVariant.getId());
-                productRepository.save(product);
-                log.info("Default variant assigned to product, productId={}, variantId={}",
-                        productId, savedVariant.getId());
-            }
         }
 
         List<ProductVariantImageResponse> imageResponses = variantImages.stream()
