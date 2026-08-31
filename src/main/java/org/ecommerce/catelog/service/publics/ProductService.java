@@ -52,7 +52,7 @@ public class ProductService {
         }
 
         List<UUID> defaultVariantIds = products.stream().map(Product::getDefaultVariantId).filter(Objects::nonNull).toList();
-        log.info(defaultVariantIds.toString());
+
         List<ProductVariant> variants = defaultVariantIds.isEmpty() ? List.of() : productVariantRepository.findAllByIdInAndActiveTrue(defaultVariantIds);
 
         Map<UUID, ProductVariant> variantMap = variants.stream().collect(Collectors.toMap(
