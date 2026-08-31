@@ -59,7 +59,7 @@ public class AdminProductService {
                 categoryMap.get(product.getCategoryId()),
                 product.getName(),
                 product.getDescription(),
-                product.getSpecifications(),
+                null,
                 product.isPublished(),
                 product.getCreatedAt()
         ));

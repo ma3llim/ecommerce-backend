@@ -100,7 +100,7 @@ public class ProductService {
         List<UUID> variantIds = variants.stream().map(ProductVariant::getId).toList();
 
         List<ProductVariantImage> images = variantIds.isEmpty() ? List.of() :
-                productVariantImageRepository.findAllByProductVariantIdInAndPrimaryTrue(variantIds);
+                productVariantImageRepository.findAllByProductVariantIdIn(variantIds);
 
         Map<UUID, List<ProductVariantImage>> imageMap = images.stream().collect(
                 Collectors.groupingBy(ProductVariantImage::getProductVariantId)
