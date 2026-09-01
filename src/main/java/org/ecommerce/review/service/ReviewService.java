@@ -34,6 +34,24 @@ public class ReviewService {
     private final PaymentService paymentService;
     private final ObjectMapper objectMapper;
 
+    public ReviewResponse getMyReview(UUID productId, UUID productVariantId, Authentication authentication) {
+        UUID userId = ((User) authentication.getPrincipal()).getId();
+
+        User user = userRepository.findById(userId).orElseThrow(() -> {
+            log.warn("Get review failed: user not found, userId={}", userId);
+            return new ResourceNotFoundException("User not found");
+        });
+
+        Review review = reviewRepository.findByUserIdAndProductIdAndProductVariantId(user.getId(), productId, productVariantId).orElseThrow(() -> {
+            log.info("Review not found for user and product variant. userId={}, productId={}, variantId={}",
+                    userId, productId, productVariantId
+            );
+            return new ResourceNotFoundException("Review not found");
+        });
+
+        return objectMapper.convertValue(review, ReviewResponse.class);
+    }
+
     public ReviewResponse createReview(@Valid CreateReviewRequest request, Authentication authentication) {
         UUID userId = ((User) authentication.getPrincipal()).getId();
         User user = userRepository.findById(userId).orElseThrow(() -> {

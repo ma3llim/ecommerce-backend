@@ -10,8 +10,10 @@ public record OrderItemResponse(
         @JsonAlias("id")
         UUID orderItem,
         UUID orderId,
+        UUID productId,
         String productName,
         String imageUrl,
+        UUID variantId,
         String variantName,
         Integer quantity,
         BigDecimal unitPrice,

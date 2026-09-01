@@ -78,4 +78,24 @@ public class ReviewController {
                 .build()
         );
     }
+
+    @Operation(
+            summary = "Get my review for a product variant",
+            description = "Retrieves the authenticated user's review for the specified product and product variant."
+    )
+    @GetMapping("/product/{productId}/variant/{productVariantId}")
+    public ResponseEntity<ApiSuccessResponse<ReviewResponse>> getMyReview(
+            @PathVariable UUID productId, @PathVariable UUID productVariantId, Authentication authentication,
+            HttpServletRequest httpRequest
+    ) {
+        ReviewResponse response = reviewService.getMyReview(productId, productVariantId, authentication);
+
+        return ResponseEntity.ok(ApiSuccessResponse.<ReviewResponse>builder()
+                .success(true)
+                .message("Review retrieved successfully")
+                .data(response)
+                .path(httpRequest.getRequestURI())
+                .build()
+        );
+    }
 }

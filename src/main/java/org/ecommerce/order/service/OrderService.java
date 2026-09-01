@@ -304,8 +304,10 @@ public class OrderService {
             return new OrderItemResponse(
                     orderItem.getId(),
                     orderItem.getOrderId(),
+                    orderItem.getProductId(),
                     orderItem.getProductName(),
                     imageUrl,
+                    orderItem.getProductVariantId(),
                     orderItem.getVariantName(),
                     orderItem.getQuantity(),
                     orderItem.getUnitPrice(),
