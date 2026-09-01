@@ -6,7 +6,7 @@ public final class RedisCacheTtl {
     private RedisCacheTtl() {
     }
 
-    public static final Duration SHORT = Duration.ofMinutes(5);
-    public static final Duration MEDIUM = Duration.ofMinutes(10);
-    public static final Duration LONG = Duration.ofMinutes(15);
+    public static final Duration SHORT = Duration.ofMinutes(3);
+    public static final Duration MEDIUM = Duration.ofMinutes(6);
+    public static final Duration LONG = Duration.ofMinutes(8);
 }

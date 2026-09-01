@@ -9,10 +9,12 @@ import org.ecommerce.catelog.entities.ProductFaq;
 import org.ecommerce.catelog.entities.ProductVariant;
 import org.ecommerce.catelog.entities.ProductVariantImage;
 import org.ecommerce.catelog.repository.*;
+import org.ecommerce.common.constants.RedisKeyConstants;
 import org.ecommerce.common.dtos.PageResponse;
 import org.ecommerce.common.exception.ResourceNotFoundException;
 import org.ecommerce.review.entities.Review;
 import org.ecommerce.review.repository.ReviewRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,7 @@ public class ProductService {
     private final ReviewRepository reviewRepository;
     private final ObjectMapper objectMapper;
 
+    @Cacheable(value = RedisKeyConstants.PRODUCTS, key = "'category=' + (#category == null ? '' : #category) + ':page=' + #pageable.pageNumber + ':size=' + #pageable.pageSize + ':sort=' + #pageable.sort")
     public PageResponse<ProductListResponse> allProducts(String category, Pageable pageable) {
         Page<Product> products;
 
@@ -90,6 +93,7 @@ public class ProductService {
                 .last(products.isLast()).build();
     }
 
+    @Cacheable(value = RedisKeyConstants.PRODUCTS_DETAILS, key = "#productSlug")
     public org.ecommerce.catelog.dtos.publics.ProductDetailsResponse productDetails(String productSlug) {
         Product product = productRepository.findBySlugAndPublishedTrue(productSlug).orElseThrow(() -> {
             log.warn("Fetch product details failed: published product not found. productSlug={}", productSlug);
