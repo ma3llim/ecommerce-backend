@@ -252,7 +252,7 @@ public class AuthService {
     @Transactional
     public UserAndTokenResponseDto refreshToken(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new UnauthorizedException("Refresh token is required");
+            throw new UnauthorizedException("Authentication is required");
         }
 
         if (!jwtService.validateRefreshToken(refreshToken)) {

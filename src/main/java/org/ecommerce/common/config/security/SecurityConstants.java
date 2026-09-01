@@ -11,6 +11,8 @@ public final class SecurityConstants {
     public static final String CATEGORY_LISTING = "/api/v1/categories/**";
     public static final String PRODUCT_LISTING = "/api/v1/products/**";
     public static final String RAZORPAY_WEBHOOK = "/api/v1/payments/webhook";
+    public static final String CONTACT = "/api/v1/contact";
+    public static final String NEWSLETTER = "/api/v1/newsletter";
     public static final String ACTUATOR_PROMETHEUS = "/actuator/prometheus";
     public static final String SWAGGER_UI = "/swagger-ui.html";
     public static final String SWAGGER_UI_RESOURCES = "/swagger-ui/**";

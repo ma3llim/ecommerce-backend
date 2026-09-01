@@ -51,7 +51,9 @@ public class SecurityConfig {
                                         SecurityConstants.RAZORPAY_WEBHOOK,
                                         SecurityConstants.SWAGGER_UI,
                                         SecurityConstants.SWAGGER_UI_RESOURCES,
-                                        SecurityConstants.OPEN_API_DOCS
+                                        SecurityConstants.OPEN_API_DOCS,
+                                        SecurityConstants.CONTACT,
+                                        SecurityConstants.NEWSLETTER
                                 ).permitAll()
                                 .requestMatchers(SecurityConstants.ACTUATOR_PROMETHEUS)
                                 .hasRole("MONITORING")
