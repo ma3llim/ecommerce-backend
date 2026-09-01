@@ -12,6 +12,7 @@ import org.ecommerce.catelog.repository.ProductRepository;
 import org.ecommerce.catelog.repository.ProductVariantRepository;
 import org.ecommerce.common.exception.BadRequestException;
 import org.ecommerce.common.exception.ResourceNotFoundException;
+import org.ecommerce.order.service.PaymentService;
 import org.ecommerce.review.dtos.request.CreateReviewRequest;
 import org.ecommerce.review.dtos.request.UpdateReviewRequest;
 import org.ecommerce.review.dtos.response.ReviewResponse;
@@ -30,6 +31,7 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final ProductVariantRepository productVariantRepository;
     private final ReviewRepository reviewRepository;
+    private final PaymentService paymentService;
     private final ObjectMapper objectMapper;
 
     public ReviewResponse createReview(@Valid CreateReviewRequest request, Authentication authentication) {
@@ -64,7 +66,7 @@ public class ReviewService {
         }
 
         // TODO: boolean verifiedPurchase here we need one function to check user is purchase or not in order service
-        boolean verifiedPurchase = true;
+        boolean verifiedPurchase = paymentService.hasPurchasedVariant(user.getId(), product.getId(), variant.getId());
         if (!verifiedPurchase) {
             log.warn("Create review rejected: user has not purchased the product. productId={}, variantId={}, userId={}",
                     request.productId(), request.productVariantId(), userId
@@ -99,7 +101,7 @@ public class ReviewService {
 
         Review review = reviewRepository.findByIdAndUserId(reviewId, userId).orElseThrow(() -> {
             log.warn("Update review failed: review not found or user is not the owner. reviewId={}, userId={}",
-                    reviewId, userId);
+                    reviewId, user.getId());
             return new ResourceNotFoundException("Review not found");
         });
 
@@ -129,7 +131,7 @@ public class ReviewService {
 
         Review review = reviewRepository.findByIdAndUserId(reviewId, userId).orElseThrow(() -> {
             log.warn("Delete review failed: review not found or user is not the owner. reviewId={}, userId={}",
-                    reviewId, userId);
+                    reviewId, user.getId());
             return new ResourceNotFoundException("Review not found");
         });
 

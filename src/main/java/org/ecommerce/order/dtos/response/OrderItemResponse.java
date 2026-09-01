@@ -11,6 +11,7 @@ public record OrderItemResponse(
         UUID orderItem,
         UUID orderId,
         String productName,
+        String imageUrl,
         String variantName,
         Integer quantity,
         BigDecimal unitPrice,

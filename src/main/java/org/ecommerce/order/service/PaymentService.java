@@ -24,6 +24,7 @@ import org.ecommerce.order.entities.Payment;
 import org.ecommerce.order.enums.OrderStatus;
 import org.ecommerce.order.enums.PaymentMethod;
 import org.ecommerce.order.enums.PaymentStatus;
+import org.ecommerce.order.repository.OrderItemRepository;
 import org.ecommerce.order.repository.OrderRepository;
 import org.ecommerce.order.repository.PaymentRepository;
 import org.json.JSONObject;
@@ -46,6 +47,7 @@ public class PaymentService {
     private final RazorpayProperties razorpayProperties;
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final OrderFinalizationService orderFinalizationService;
     private final ObjectMapper objectMapper;
     private final NotificationService notificationService;
@@ -54,7 +56,9 @@ public class PaymentService {
     public String createRazorpayOrder(UUID orderId, BigDecimal amount) {
         JSONObject options = new JSONObject();
 
-        options.put("amount", amount.setScale(2, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100)));
+        long amountInPaise = amount.movePointRight(2).setScale(0, RoundingMode.HALF_UP).longValueExact();
+
+        options.put("amount", amountInPaise);
         options.put("currency", razorpayProperties.currency());
         options.put("receipt", orderId.toString());
 
@@ -92,6 +96,8 @@ public class PaymentService {
 
         String razorpayPaymentId = paymentEntity.getString("id");
         String razorpayOrderId = paymentEntity.getString("order_id");
+        long razorpayAmount = paymentEntity.getLong("amount");
+        String razorpayCurrency = paymentEntity.getString("currency");
 
         Payment payment = paymentRepository.findByRazorpayOrderId(razorpayOrderId).orElseThrow(() -> {
             log.warn("Razorpay webhook rejected: payment not found. razorpayOrderId={}, event={}",
@@ -99,9 +105,34 @@ public class PaymentService {
             return new ResourceNotFoundException("Payment not found");
         });
 
-        if (payment.getTransactionId() != null) {
-            log.info("Payment already processed. transactionId={}", payment.getTransactionId());
+        if (payment.getPaymentStatus() == PaymentStatus.CAPTURED || payment.getPaymentStatus() == PaymentStatus.FAILED
+                || payment.getPaymentStatus() == PaymentStatus.REFUNDED) {
+            log.info(
+                    "Payment webhook already processed. paymentId={}, status={}, event={}",
+                    payment.getId(),
+                    payment.getPaymentStatus(),
+                    event
+            );
             return;
+        }
+        long expectedAmount = payment.getAmount().movePointRight(2).setScale(0, RoundingMode.HALF_UP).longValueExact();
+
+        if (razorpayAmount != expectedAmount) {
+            log.error("Razorpay webhook rejected: amount mismatch. paymentId={}, expectedAmount={}, receivedAmount={}",
+                    payment.getId(),
+                    expectedAmount,
+                    razorpayAmount
+            );
+            throw new BadRequestException("Payment amount mismatch");
+        }
+
+        if (!razorpayCurrency.equalsIgnoreCase(payment.getCurrency())) {
+            log.error("Razorpay webhook rejected: currency mismatch. paymentId={}, expectedCurrency={}, receivedCurrency={}",
+                    payment.getId(),
+                    payment.getCurrency(),
+                    razorpayCurrency
+            );
+            throw new BadRequestException("Payment currency mismatch");
         }
 
         if (event.equals("payment.captured")) {
@@ -199,7 +230,7 @@ public class PaymentService {
 
             paymentRepository.save(payment);
 
-            sendRefundedMail(user.getFullName(), order.getOrderNumber(), refundId, order.getTotalAmount(), Instant.now(), user.getEmail());
+            sendRefundedMail(user.getFullName(), order.getOrderNumber(), refundId, order.getTotalAmount(), now, user.getEmail());
         } catch (RazorpayException e) {
             log.error("Razorpay refund failed. transactionId={}, paymentId={}",
                     payment.getTransactionId(), payment.getId(), e);
@@ -265,6 +296,15 @@ public class PaymentService {
         log.info("Razorpay payment initiated: orderId={}, razorpayOrderId={}, amount={}", orderId, razorpayOrderId, amount);
 
         return objectMapper.convertValue(payment, PaymentResponse.class);
+    }
+
+    public boolean hasPurchasedVariant(UUID userId, UUID productId, UUID productVariantId) {
+        return orderItemRepository.existsPurchasedProductVariant(
+                userId,
+                OrderStatus.DELIVERED,
+                productId,
+                productVariantId
+        );
     }
 
     public void sendPaymentSuccessMail(

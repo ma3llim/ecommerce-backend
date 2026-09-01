@@ -19,6 +19,7 @@ import org.ecommerce.order.entities.Order;
 import org.ecommerce.order.entities.OrderItem;
 import org.ecommerce.order.entities.Payment;
 import org.ecommerce.order.enums.OrderStatus;
+import org.ecommerce.order.enums.PaymentMethod;
 import org.ecommerce.order.enums.PaymentStatus;
 import org.ecommerce.order.repository.OrderItemRepository;
 import org.ecommerce.order.repository.OrderRepository;
@@ -162,6 +163,18 @@ public class AdminOrderService {
         }
 
         order.setOrderStatus(status);
+
+        Payment payment = paymentRepository.findByOrderId(order.getId()).orElseThrow(() -> {
+            log.warn("Payment not found while updating order status: orderId={}", orderId);
+            return new ResourceNotFoundException("Payment not found");
+        });
+
+        if (status == OrderStatus.DELIVERED && payment.getPaymentMethod() == PaymentMethod.COD) {
+            payment.setPaymentStatus(PaymentStatus.SUCCESS);
+            order.setPaymentStatus(PaymentStatus.SUCCESS);
+
+            paymentRepository.save(payment);
+        }
 
         orderRepository.save(order);
 

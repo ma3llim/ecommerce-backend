@@ -10,6 +10,8 @@ import org.ecommerce.cart.entities.CartItem;
 import org.ecommerce.cart.repository.CartItemRepository;
 import org.ecommerce.cart.repository.CartRepository;
 import org.ecommerce.cart.repository.projection.CartOrderItemProjection;
+import org.ecommerce.catelog.entities.ProductVariantImage;
+import org.ecommerce.catelog.repository.ProductVariantImageRepository;
 import org.ecommerce.catelog.repository.ProductVariantRepository;
 import org.ecommerce.common.dtos.PageResponse;
 import org.ecommerce.common.enums.DiscountType;
@@ -60,6 +62,7 @@ public class OrderService {
     private final ObjectMapper objectMapper;
     private final PaymentService paymentService;
     private final ProductVariantRepository productVariantRepository;
+    private final ProductVariantImageRepository productVariantImageRepository;
     private final OrderFinalizationService orderFinalizationService;
     private final ShipmentTrackingEventRepository shipmentTrackingEventRepository;
     private final ShipmentRepository shipmentRepository;
@@ -294,8 +297,22 @@ public class OrderService {
 
         List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
 
-        List<OrderItemResponse> orderItemResponses = orderItems.stream().map(orderItem ->
-                objectMapper.convertValue(orderItem, OrderItemResponse.class)).toList();
+        List<OrderItemResponse> orderItemResponses = orderItems.stream().map(orderItem -> {
+            String imageUrl = productVariantImageRepository.findByProductVariantIdAndPrimaryTrue(orderItem.getProductVariantId())
+                    .map(ProductVariantImage::getImageUrl).orElse(null);
+
+            return new OrderItemResponse(
+                    orderItem.getId(),
+                    orderItem.getOrderId(),
+                    orderItem.getProductName(),
+                    imageUrl,
+                    orderItem.getVariantName(),
+                    orderItem.getQuantity(),
+                    orderItem.getUnitPrice(),
+                    orderItem.getTotalPrice(),
+                    orderItem.getCreatedAt()
+            );
+        }).toList();
 
         Payment payment = paymentRepository.findByOrderId(order.getId()).orElseThrow(() -> {
             log.warn("Get order details failed: payment not found. orderId={}, userId={}", orderId, userId);
@@ -303,25 +320,26 @@ public class OrderService {
         });
         PaymentResponse paymentResponse = objectMapper.convertValue(payment, PaymentResponse.class);
 
-        Shipment shipment = shipmentRepository.findByOrderId(order.getId()).orElseThrow(() -> {
-            log.warn("Get order details failed: shipment not found. orderId={}", order.getId());
-            return new ResourceNotFoundException("Shipment not found");
-        });
+        Shipment shipment = shipmentRepository.findByOrderId(order.getId()).orElse(null);
 
-        List<ShipmentTrackingEvent> shipmentTrackingEvents = shipmentTrackingEventRepository
-                .findByShipmentIdOrderByEventTimeDesc(shipment.getId());
+        UserShipmentResponse shipmentResponse = null;
 
-        List<ShipmentTimelineResponse> shipmentTimelineResponses = shipmentTrackingEvents.stream().map(shipmentTrackingEvent ->
-                objectMapper.convertValue(shipmentTrackingEvent, ShipmentTimelineResponse.class)).toList();
+        if (shipment != null) {
+            List<ShipmentTrackingEvent> shipmentTrackingEvents = shipmentTrackingEventRepository
+                    .findByShipmentIdOrderByEventTimeDesc(shipment.getId());
 
-        UserShipmentResponse shipmentResponse = UserShipmentResponse.builder()
-                .shipmentId(shipment.getId())
-                .courierName(shipment.getCourierName())
-                .trackingNumber(shipment.getTrackingNumber())
-                .shipmentStatus(shipment.getShipmentStatus())
-                .shippedAt(shipment.getShippedAt())
-                .deliveredAt(shipment.getDeliveredAt())
-                .timeline(shipmentTimelineResponses).build();
+            List<ShipmentTimelineResponse> shipmentTimelineResponses = shipmentTrackingEvents.stream().map(shipmentTrackingEvent ->
+                    objectMapper.convertValue(shipmentTrackingEvent, ShipmentTimelineResponse.class)).toList();
+
+            shipmentResponse = UserShipmentResponse.builder()
+                    .shipmentId(shipment.getId())
+                    .courierName(shipment.getCourierName())
+                    .trackingNumber(shipment.getTrackingNumber())
+                    .shipmentStatus(shipment.getShipmentStatus())
+                    .shippedAt(shipment.getShippedAt())
+                    .deliveredAt(shipment.getDeliveredAt())
+                    .timeline(shipmentTimelineResponses).build();
+        }
 
         UserAddress shippingAddress = userAddressRepository.findByUserIdAndId(userId, order.getShippingAddressId())
                 .orElseThrow(() -> {
@@ -392,7 +410,7 @@ public class OrderService {
         orderRepository.save(order);
 
         sendOrderCancelledMail(user.getFullName(), order.getOrderNumber(), order.getTotalAmount(), Instant.now(), user.getEmail());
-        
+
         return objectMapper.convertValue(order, OrderResponse.class);
     }
 
