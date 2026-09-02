@@ -28,6 +28,6 @@ public final class SkuUtils {
             code = code.substring(0, maxLength);
         }
 
-        return code;
+        return code.replaceAll("-+$", "");
     }
 }
