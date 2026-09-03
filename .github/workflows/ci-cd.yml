@@ -56,3 +56,13 @@ jobs:
 
             - name: Push Docker image to Amazon ECR
               run: docker push ${{ steps.login-ecr.outputs.registry }}/ecommerce-backend:${{ github.sha }}
+
+            - name: Deploy to EC2
+              run: aws ssm send-command --instance-ids "i-03fc42a6ce2b5b9fe" --document-name "AWS-RunShellScript" \
+                  --parameters 'commands=[
+                  "aws ecr get-login-password --region ap-south-2 | sudo docker login --username AWS --password-stdin 877133239377.dkr.ecr.ap-south-2.amazonaws.com",
+                  "sudo docker pull 877133239377.dkr.ecr.ap-south-2.amazonaws.com/ecommerce-backend:${{ github.sha }}",
+                  "sudo docker stop ecommerce-backend || true",
+                  "sudo docker rm ecommerce-backend || true",
+                  "sudo docker run -d --name ecommerce-backend --env-file /opt/ecommerce/.env -p 80:8080 877133239377.dkr.ecr.ap-south-2.amazonaws.com/ecommerce-backend:${{ github.sha }}"
+                  ]' --region ap-south-2
