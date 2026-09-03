@@ -129,8 +129,8 @@ public class AuthControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Email verified successfully. You are now logged in."))
-                .andExpect(jsonPath("$.data.id").value(userId.toString()))
-                .andExpect(jsonPath("$.data.email").value("john@example.com"))
+                .andExpect(jsonPath("$.data.user.id").value(userId.toString()))
+                .andExpect(jsonPath("$.data.user.email").value("john@example.com"))
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/verify-email"));
 
         verify(authService).verifyEmail(any(VerifyEmailRequestDto.class));
@@ -169,12 +169,12 @@ public class AuthControllerTest {
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message")
-                        .value("Login successful"))
-                .andExpect(jsonPath("$.data.id").value(userId.toString()))
-                .andExpect(jsonPath("$.data.email").value("john@example.com"))
+                        .value("Login successfully."))
+                .andExpect(jsonPath("$.data.user.id").value(userId.toString()))
+                .andExpect(jsonPath("$.data.user.email").value("john@example.com"))
                 .andExpect(jsonPath("$.path")
                         .value("/api/v1/auth/login"));
 
@@ -225,7 +225,7 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message")
                         .value("Refresh Token Successfully"))
-                .andExpect(jsonPath("$.data.id").value(userId.toString()))
+                .andExpect(jsonPath("$.data.user.id").value(userId.toString()))
                 .andExpect(jsonPath("$.path")
                         .value("/api/v1/auth/refresh-token"));
 
