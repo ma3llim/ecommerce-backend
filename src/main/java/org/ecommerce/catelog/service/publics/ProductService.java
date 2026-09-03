@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ecommerce.catelog.dtos.publics.*;
-import org.ecommerce.catelog.entities.Product;
-import org.ecommerce.catelog.entities.ProductFaq;
-import org.ecommerce.catelog.entities.ProductVariant;
-import org.ecommerce.catelog.entities.ProductVariantImage;
+import org.ecommerce.catelog.entities.*;
 import org.ecommerce.catelog.repository.*;
 import org.ecommerce.common.constants.RedisKeyConstants;
 import org.ecommerce.common.dtos.PageResponse;
@@ -36,6 +33,8 @@ public class ProductService {
     private final ProductVariantImageRepository productVariantImageRepository;
     private final ProductFaqRepository productFaqRepository;
     private final ReviewRepository reviewRepository;
+    private final TagRepository tagRepository;
+    private final ProductTagRepository productTagRepository;
     private final ObjectMapper objectMapper;
 
     @Cacheable(value = RedisKeyConstants.PRODUCTS, key = "'category=' + (#category == null ? '' : #category) + ':page=' + #pageable.pageNumber + ':size=' + #pageable.pageSize + ':sort=' + #pageable.sort")
@@ -198,5 +197,67 @@ public class ProductService {
                 productSearchResponses.isFirst(),
                 productSearchResponses.isLast()
         );
+    }
+
+    @Cacheable(value = RedisKeyConstants.PRODUCTS_BY_TAG, key = "#tagSlug")
+    public PageResponse<ProductListResponse> getProductsByTag(String tagSlug, Pageable pageable) {
+        Tag tag = tagRepository.findBySlug(tagSlug).orElseThrow(() -> {
+            log.warn("Fetch products by tag failed: tag not found. tagSlug={}", tagSlug);
+            return new ResourceNotFoundException("Tag not found");
+        });
+
+        List<UUID> productIds = productTagRepository.findAllByTagId(tag.getId()).stream().map(ProductTag::getProductId).toList();
+
+        if (productIds.isEmpty()) {
+            return PageResponse.<ProductListResponse>builder().content(List.of())
+                    .page(0)
+                    .size(pageable.getPageSize())
+                    .totalElements(0)
+                    .totalPages(0)
+                    .first(true)
+                    .last(true)
+                    .build();
+        }
+
+        Page<Product> products = productRepository.findByIdInAndPublishedTrue(productIds, pageable);
+
+        List<UUID> defaultVariantIds = products.stream().map(Product::getDefaultVariantId).filter(Objects::nonNull).toList();
+
+        List<ProductVariant> variants = defaultVariantIds.isEmpty() ? List.of() : productVariantRepository.findAllByIdInAndActiveTrue(defaultVariantIds);
+
+        Map<UUID, ProductVariant> variantMap = variants.stream().collect(Collectors.toMap(
+                ProductVariant::getId,
+                Function.identity()
+        ));
+
+        List<UUID> variantIds = variants.stream().map(ProductVariant::getId).toList();
+        List<ProductVariantImage> images = variantIds.isEmpty() ? List.of() : productVariantImageRepository.findAllByProductVariantIdInAndPrimaryTrue(variantIds);
+
+        Map<UUID, String> imageMap = images.stream().collect(Collectors
+                .toMap(ProductVariantImage::getProductVariantId, ProductVariantImage::getImageUrl));
+
+        List<ProductListResponse> content = products.getContent().stream().map(product -> {
+            ProductVariant variant = variantMap.get(product.getDefaultVariantId());
+            String imageUrl = imageMap.get(product.getDefaultVariantId());
+
+            return new ProductListResponse(
+                    product.getId(),
+                    product.getName(),
+                    product.getDescription(),
+                    product.getSlug(),
+                    variant != null ? variant.getPrice() : null,
+                    imageUrl
+            );
+        }).toList();
+
+        return PageResponse.<ProductListResponse>builder()
+                .content(content)
+                .page(products.getNumber())
+                .size(products.getSize())
+                .totalElements(products.getTotalElements())
+                .totalPages(products.getTotalPages())
+                .first(products.isFirst())
+                .last(products.isLast()).build();
+
     }
 }

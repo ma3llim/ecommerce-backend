@@ -95,4 +95,21 @@ public class ProductController {
                         .path(request.getRequestURI()).build()
         );
     }
+
+    @GetMapping("/tag/{tagSlug}")
+    @Operation(summary = "Get products by tag", description = "Retrieve published products associated with a single tag")
+    public ResponseEntity<ApiSuccessResponse<PageResponse<ProductListResponse>>> getProductsByTag(
+            @PathVariable String tagSlug, Pageable pageable, HttpServletRequest request
+    ) {
+        PageResponse<ProductListResponse> response = productService.getProductsByTag(tagSlug, pageable);
+
+        return ResponseEntity.ok(ApiSuccessResponse.<PageResponse<ProductListResponse>>builder()
+                .success(true)
+                .message("Products fetched successfully")
+                .data(response)
+                .path(request.getRequestURI())
+                .build()
+        );
+    }
+
 }
