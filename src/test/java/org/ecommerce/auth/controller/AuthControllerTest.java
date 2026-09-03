@@ -9,7 +9,6 @@ import org.ecommerce.auth.enums.Role;
 import org.ecommerce.auth.repository.UserRepository;
 import org.ecommerce.auth.service.AuthService;
 import org.ecommerce.common.config.rate.RateLimitFilter;
-import org.ecommerce.common.notification.dtos.NotificationRequest;
 import org.ecommerce.common.notification.service.NotificationService;
 import org.ecommerce.common.security.JwtService;
 import org.ecommerce.common.utils.CookieUtils;
@@ -30,7 +29,8 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -136,12 +136,6 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.data.user.id").value(userId.toString()))
                 .andExpect(jsonPath("$.data.user.email").value("john@example.com"))
                 .andExpect(jsonPath("$.path").value("/api/v1/auth/verify-email"));
-
-        when(objectMapper.convertValue(eq(userResponseDto), eq(UserResponseDto.class))).thenReturn(userResponseDto);
-
-        doNothing().when(notificationService)
-                .send(any(NotificationRequest.class));
-
 
         verify(authService).verifyEmail(any(VerifyEmailRequestDto.class));
 

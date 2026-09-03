@@ -17,6 +17,7 @@ import org.ecommerce.auth.repository.UserRepository;
 import org.ecommerce.common.config.properties.JwtProperties;
 import org.ecommerce.common.constants.AppConstants;
 import org.ecommerce.common.exception.ResourceNotFoundException;
+import org.ecommerce.common.notification.service.NotificationService;
 import org.ecommerce.common.security.JwtService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,9 @@ public class AuthServiceVerifyEmailTest {
 
     @InjectMocks
     private AuthService authService;
+
+    @Mock
+    private NotificationService notificationService;
 
     private RegisterUserRequestDto registerRequest;
     private User user;
