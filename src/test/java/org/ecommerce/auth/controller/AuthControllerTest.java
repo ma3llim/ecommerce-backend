@@ -8,6 +8,7 @@ import org.ecommerce.auth.enums.AccountStatus;
 import org.ecommerce.auth.enums.Role;
 import org.ecommerce.auth.repository.UserRepository;
 import org.ecommerce.auth.service.AuthService;
+import org.ecommerce.common.config.rate.RateLimitFilter;
 import org.ecommerce.common.security.JwtService;
 import org.ecommerce.common.utils.CookieUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +16,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -49,6 +54,21 @@ public class AuthControllerTest {
 
     @MockitoBean
     private UserRepository userRepository;
+
+    @MockitoBean
+    private AuthenticationManager authenticationManager;
+
+    @MockitoBean
+    private PasswordEncoder passwordEncoder;
+
+    @MockitoBean
+    private AuthenticationProvider authenticationProvider;
+
+    @MockitoBean
+    private RateLimitFilter rateLimitFilter;
+
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMappingContext;
 
     @Test
     @DisplayName("Should register user successfully")
