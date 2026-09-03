@@ -1,0 +1,109 @@
+spring:
+    application:
+        name: ecommerce-application
+
+    datasource:
+        url: ${PG_URL}
+        username: ${PG_USER}
+        password: ${PG_PASSWORD}
+
+    data:
+        redis:
+            url: ${UPSTASH_REDIS_URL}
+
+    jpa:
+        hibernate:
+            ddl-auto: validate
+
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: ${MAIL_USERNAME}
+        password: ${MAIL_PASSWORD}
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+                        required: true
+                    connectiontimeout: 5000
+                    timeout: 5000
+                    writetimeout: 5000
+
+    lifecycle:
+        timeout-per-shutdown-phase: 20s
+
+server:
+    shutdown: graceful
+
+app:
+    cors:
+        allowed-origins:
+            - ${FRONTEND_URL}
+
+    jwt:
+        secret: ${JWT_SECRET}
+        issuer: ${JWT_ISSUER}
+        access-token-expiration: ${JWT_ACCESS_EXPIRATION}
+        refresh-token-expiration: ${JWT_REFRESH_EXPIRATION}
+
+    cookie:
+        access-token-name: access_token
+        refresh-token-name: refresh_token
+        secure: true
+        http-only: true
+        same-site: ${COOKIE_SAME_SITE}
+        path: /
+
+    cloudinary:
+        cloud-name: ${CLOUDINARY_CLOUD_NAME}
+        api-key: ${CLOUDINARY_API_KEY}
+        api-secret: ${CLOUDINARY_API_SECRET}
+
+    razorpay:
+        key-id: ${RAZORPAY_KEY_ID}
+        key-secret: ${RAZORPAY_KEY_SECRET}
+        webhook-secret: ${RAZORPAY_WEBHOOK_SECRET}
+        currency: INR
+
+    monitoring:
+        username: ${MONITORING_USERNAME}
+        password: ${MONITORING_PASSWORD}
+
+springdoc:
+    api-docs:
+        path: /v3/api-docs
+        enabled: false
+
+    swagger-ui:
+        path: /swagger-ui.html
+        enabled: false
+        operations-sorter: alpha
+        tags-sorter: alpha
+
+    packages-to-scan:
+        - org.ecommerce
+
+management:
+    endpoint:
+        health:
+            show-details: when_authorized
+            probes:
+                enabled: true
+
+    endpoints:
+        web:
+            exposure:
+                include: health,info,prometheus
+
+rate-limit:
+    default-limit:
+        capacity: 30
+        refill-tokens: 30
+        refill-duration: 1m
+
+    auth:
+        capacity: 5
+        refill-tokens: 5
+        refill-duration: 1m
