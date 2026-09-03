@@ -9,6 +9,11 @@ permissions:
     id-token: write
     contents: read
 
+env:
+    AWS_REGION: ${{ vars.AWS_REGION }}
+    ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+    EC2_INSTANCE_ID: ${{ vars.EC2_INSTANCE_ID }}
+
 jobs:
     build:
         runs-on: ubuntu-latest
@@ -39,7 +44,7 @@ jobs:
               uses: aws-actions/configure-aws-credentials@v6
               with:
                   role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-                  aws-region: ap-south-2
+                  aws-region: ${{ env.AWS_REGION }}
 
             - name: Login to Amazon ECR
               id: login-ecr
@@ -52,17 +57,25 @@ jobs:
               run: docker build -t ecommerce-backend:${{ github.sha }} .
 
             - name: Tag Docker image
-              run: docker tag ecommerce-backend:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/ecommerce-backend:${{ github.sha }}
+              run: docker tag ecommerce-backend:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
             - name: Push Docker image to Amazon ECR
-              run: docker push ${{ steps.login-ecr.outputs.registry }}/ecommerce-backend:${{ github.sha }}
+              run: docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
-            - name: Deploy to EC2
-              run: aws ssm send-command --instance-ids "i-03fc42a6ce2b5b9fe" --document-name "AWS-RunShellScript" \
-                  --parameters 'commands=[
-                  "aws ecr get-login-password --region ap-south-2 | sudo docker login --username AWS --password-stdin 877133239377.dkr.ecr.ap-south-2.amazonaws.com",
-                  "sudo docker pull 877133239377.dkr.ecr.ap-south-2.amazonaws.com/ecommerce-backend:${{ github.sha }}",
-                  "sudo docker stop ecommerce-backend || true",
-                  "sudo docker rm ecommerce-backend || true",
-                  "sudo docker run -d --name ecommerce-backend --env-file /opt/ecommerce/.env -p 80:8080 877133239377.dkr.ecr.ap-south-2.amazonaws.com/ecommerce-backend:${{ github.sha }}"
-                  ]' --region ap-south-2
+                        - name: Deploy to EC2
+              shell: bash
+              run: |
+                  ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+                  IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${{ github.sha }}"
+
+                  aws ssm send-command \
+                    --region "${AWS_REGION}" \
+                    --instance-ids "${EC2_INSTANCE_ID}" \
+                    --document-name "AWS-RunShellScript" \
+                    --parameters "commands=[
+                      \"aws ecr get-login-password --region ${AWS_REGION} | sudo docker login --username AWS --password-stdin ${ECR_REGISTRY}\",
+                      \"sudo docker pull ${IMAGE_URI}\",
+                      \"sudo docker stop ecommerce-backend || true\",
+                      \"sudo docker rm ecommerce-backend || true\",
+                      \"sudo docker run -d --name ecommerce-backend --env-file /opt/ecommerce/.env -p 80:8080 ${IMAGE_URI}\"
+                    ]"
