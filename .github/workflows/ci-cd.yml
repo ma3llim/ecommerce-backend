@@ -5,6 +5,10 @@ on:
         branches:
             - master
 
+permissions:
+    id-token: write
+    contents: read
+
 jobs:
     build:
         runs-on: ubuntu-latest
@@ -30,3 +34,22 @@ jobs:
 
             - name: Build application
               run: ./gradlew clean bootJar
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v6
+              with:
+                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                  aws-region: ap-south-1
+
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v2
+
+            - name: Build Docker image
+              run: docker build -t ecommerce-backend:${{ github.sha }} .
+
+            - name: Tag Docker image
+              run: docker tag ecommerce-backend:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/ecommerce-backend:${{ github.sha }}
+
+            - name: Push Docker image to Amazon ECR
+              run: docker push ${{ steps.login-ecr.outputs.registry }}/ecommerce-backend:${{ github.sha }}
