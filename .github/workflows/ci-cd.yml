@@ -53,7 +53,7 @@ jobs:
               uses: aws-actions/amazon-ecr-login@v2
 
             - name: Build Docker image
-               run: docker build -t ${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
+              run: docker build -t ${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
 
             - name: Tag Docker image
               docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
