@@ -10,146 +10,21 @@ The application provides authentication, product catalog management, shopping ca
 
 The E-Commerce Backend provides the core business APIs required by the E-Commerce application.
 
-The backend is responsible for:
-
-- User authentication and authorization
-- User account management
-- Product and category management
-- Product reviews and ratings
-- Shopping cart management
-- Order processing
-- Coupon management
-- Payment processing
-- Payment webhook handling
-- Transactional email notifications
-- API rate limiting
-- Application monitoring
-- REST API documentation
-
-The application is designed with a focus on:
-
-- Maintainability
-- Security
-- Separation of responsibilities
-- Production readiness
-- Observability
-- Practical deployment
-
 ## Features
 
-#### Authentication & Authorization
-
-- User registration
-- User login
-- JWT-based authentication
-- Access and refresh tokens
-- Logout
-- Email verification
-- Resend verification
-- Forgot password
-- Password reset
-- Role-based authorization
-- Secure password handling
-
-#### User Management
-
-- User profile management
-- Account information
-- Address management
-- User-specific operations
-- Role-based access control
-
-#### Product Catalog
-
-- Product management
-- Category management
-- Product variants
-- Product images
-- Product search and filtering
-- Product availability
-- Catalog-related operations
-
-#### Reviews
-
-- Product reviews
-- Ratings
-- Review management
-- User-based review operations
-
-#### Shopping Cart
-
-- Add products to cart
-- Update cart items
-- Remove cart items
-- View cart
-- Cart validation
-
-#### Orders
-
-- Create orders
-- View orders
-- Order details
-- Order lifecycle management
-- Order cancellation
-- Order status handling
-
-#### Coupons
-
-- Coupon management
-- Coupon validation
-- Discount application
-- Coupon usage handling
-
-#### Payments
-
-- Razorpay integration
-- Payment processing
-- Payment status handling
-- Razorpay webhook processing
-- Payment failure handling
-- Refund processing
-
-The Razorpay webhook is treated as an external-system integration rather than a normal authenticated user/admin API.
-
-#### API Rate Limiting
-
-- Incoming API requests are protected using Bucket4j.
-
-    ```text
-    Client
-    │
-    ▼
-    API Request
-    │
-    ▼
-    Bucket4j
-    │
-    ├── Allowed ──────► Application
-    │
-    └── Limit Exceeded ► HTTP 429
-    ```
-
-#### Monitoring & Observability
-
-- The application exposes operational metrics using:
-
-    ```text
-    Spring Boot
-        │
-        ▼
-    Actuator
-        │
-        ▼
-    Micrometer
-        │
-        ▼
-    Prometheus
-        │
-        ▼
-    Grafana
-    ```
-
-The monitoring setup provides visibility into application health, HTTP requests, latency, errors, JVM metrics, and application performance.
+- Secure user authentication & authorization (Registration, Login, Logout, Email Verification, Password Reset, JWT)
+- User profile and address management
+- Product catalog management with categories, variants, images, search, and filtering
+- Product reviews and ratings
+- Shopping cart management
+- Order management and order lifecycle handling
+- Coupon management and discount validation
+- Secure payment processing via Razorpay with webhook and refund handling
+- Transactional email notifications for authentication, orders, payments, and refunds
+- API rate limiting using Bucket4j
+- Application monitoring and observability using Actuator, Micrometer, Prometheus, and Grafana
+- RESTful APIs documented using OpenAPI / Swagger
+- Role-based access control for users and administrators
 
 ## Technology Stack
 
@@ -176,44 +51,30 @@ The monitoring setup provides visibility into application health, HTTP requests,
 
 ## Architecture
 
-- The backend uses a **modular monolith** architecture.
+The backend uses a **modular monolith** architecture.
 
-    ```text
-                        E-Commerce Backend
-                               │
-            ┌──────────────────┼──────────────────┐
-            │                  │                  │
-           Auth              User              Catalog
-            │                  │                  │
-            └──────────────┬───┴──────────────┬───┘
-                           │                  │
-                          Cart              Review
-                            │                  │
-                            └────────┬─────────┘
-                                     │
-                                   Order
-                                     │
-                              ┌──────┴──────┐
-                              │             │
-                            Coupon        Payment
-                                            │
-                                            │
-                                        Razorpay
-    ```
-
-### Modules
-
-- common
-- auth
-- user
-- catalog
-- review
-- cart
-- order
-- coupon
-- payment
-
-The project intentionally uses a modular monolith instead of introducing microservices and distributed infrastructure where it is not necessary.
+```text
+                    E-Commerce Backend
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+       Auth              User              Catalog
+        │                  │                  │
+        └──────────────┬───┴──────────────┬───┘
+                       │                  │
+                      Cart              Review
+                        │                  │
+                        └────────┬─────────┘
+                                 │
+                               Order
+                                 │
+                          ┌──────┴──────┐
+                          │             │
+                        Coupon        Payment
+                                        │
+                                        │
+                                    Razorpay
+```
 
 ## Installation
 
