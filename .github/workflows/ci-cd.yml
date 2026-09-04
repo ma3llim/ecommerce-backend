@@ -52,14 +52,11 @@ jobs:
               id: login-ecr
               uses: aws-actions/amazon-ecr-login@v2
 
-            - name: Verify Dockerfile
-              run: pwd ls -la cat Dockerfile
-
             - name: Build Docker image
-              run: docker build -t ecommerce-backend:${{ github.sha }} .
+               run: docker build -t ${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
 
             - name: Tag Docker image
-              run: docker tag ecommerce-backend:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+              docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
             - name: Push Docker image to Amazon ECR
               run: docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
