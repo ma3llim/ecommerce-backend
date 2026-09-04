@@ -76,6 +76,6 @@ jobs:
                       \"sudo docker pull ${IMAGE_URI}\",
                       \"sudo docker stop ecommerce-backend || true\",
                       \"sudo docker rm ecommerce-backend || true\",
-                      \"sudo docker run -d --name ecommerce-backend --env-file /opt/ecommerce/.env -p 80:8080 ${IMAGE_URI}\",
+                      \"sudo docker run -d --name ecommerce-backend --env-file /opt/ecommerce/.env -p 8080:8080 ${IMAGE_URI}\",
                       \"sudo docker image prune -f\"
                     ]"
