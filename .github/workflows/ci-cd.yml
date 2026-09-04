@@ -62,7 +62,7 @@ jobs:
             - name: Push Docker image to Amazon ECR
               run: docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
-                        - name: Deploy to EC2
+            - name: Deploy to EC2
               shell: bash
               run: |
                   ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
@@ -77,5 +77,6 @@ jobs:
                       \"sudo docker pull ${IMAGE_URI}\",
                       \"sudo docker stop ecommerce-backend || true\",
                       \"sudo docker rm ecommerce-backend || true\",
-                      \"sudo docker run -d --name ecommerce-backend --env-file /opt/ecommerce/.env -p 80:8080 ${IMAGE_URI}\"
+                      \"sudo docker run -d --name ecommerce-backend --env-file /opt/ecommerce/.env -p 80:8080 ${IMAGE_URI}\",
+                      \"sudo docker image prune -f\"
                     ]"
