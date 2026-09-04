@@ -56,7 +56,7 @@ jobs:
               run: docker build -t ${{ env.ECR_REPOSITORY }}:${{ github.sha }} .
 
             - name: Tag Docker image
-              docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+              run: docker tag ${{ env.ECR_REPOSITORY }}:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
             - name: Push Docker image to Amazon ECR
               run: docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
