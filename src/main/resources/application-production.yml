@@ -6,6 +6,12 @@ spring:
         url: ${PG_URL}
         username: ${PG_USER}
         password: ${PG_PASSWORD}
+        hikari:
+            maximum-pool-size: 1
+            minimum-idle: 0
+            connection-timeout: 30000
+            idle-timeout: 30000
+            max-lifetime: 300000
 
     data:
         redis:
