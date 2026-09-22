@@ -149,7 +149,7 @@ The production architecture separates the frontend, backend, and database.
                          ┌────┴────┐
                          ▼         ▼
                    PostgreSQL    Redis
-                      Neon      (Planned)
+                      Neon
 ```
 
 ## CI/CD
@@ -175,7 +175,7 @@ GitHub Actions
 Docker Image
     │
     ▼
-Container Registry
+Amazon ECR
     │
     ▼
 AWS EC2
