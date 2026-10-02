@@ -42,11 +42,6 @@ jobs:
             - name: Build application
               run: ./gradlew clean bootJar
 
-            - name: Debug OIDC claims
-              uses: github/actions-oidc-debugger@main
-              with:
-                  audience: sts.amazonaws.com
-
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v6
               with:
